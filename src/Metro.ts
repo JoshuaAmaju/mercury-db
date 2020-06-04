@@ -52,6 +52,11 @@ export default class Metro {
     });
   }
 
+  delete(model: string) {
+    this.db.deleteObjectStore(model);
+    this.models.delete(model);
+  }
+
   deleteDB() {
     return new Promise((resolve, reject) => {
       const request = indexedDB.deleteDatabase(this.name);
