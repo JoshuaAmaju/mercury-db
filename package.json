@@ -1,0 +1,11 @@
+{
+  "name": "draft-06",
+  "version": "0.0.1",
+  "description": "Graph database backed by IndexedDB",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
