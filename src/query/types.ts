@@ -1,17 +1,17 @@
-interface QueryNode<T> {
+export type QueryTypes = "CREATE" | "MATCH" | "MERGE" | "RELATE";
+
+export interface QueryNode<T> {
   label: T;
   as: string;
   props?: object;
   primaryKey?: string;
 }
 
-interface RelationNode {
+export interface RelationNode {
   as: string;
   type: string;
   props?: object;
 }
-
-export type QueryTypes = "CREATE" | "MATCH" | "MERGE" | "RELATE";
 
 export interface Query<T> {
   type: QueryTypes;

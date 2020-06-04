@@ -25,8 +25,18 @@ export default class Metro {
         await installSchema(tx, models);
       };
 
+      // TODO: Handle situation when DB is blocked
+      // by another version running in a different tab
+      // on the same browser.
+      request.onblocked = () => {};
+
       request.onsuccess = () => {
         this.db = request.result;
+
+        // TODO: Handler scenario where the database
+        // was upgraded by another running tab.
+        this.db.onversionchange = () => {};
+
         resolve();
       };
     });
