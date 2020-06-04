@@ -4,7 +4,6 @@ export interface QueryNode<T> {
   label: T;
   as: string;
   props?: object;
-  primaryKey?: string;
 }
 
 export interface RelationNode {

@@ -1,13 +1,25 @@
 import Property from "./Property";
-import { StringOrSchemaObject, Schema } from "./types";
+import { Schema, StringOrSchemaObject } from "./types";
 
-export default class Model<T = {}> {
-  primaryKey = "id";
+const defaultPrimary = {
+  unique: true,
+  indexed: true,
+  primary: true,
+  type: "string",
+};
+
+export default class Model {
+  primaryKey = "_id";
   unique: string[] = [];
   indexed: string[] = [];
   properties = new Map<string, Property>();
 
   constructor(public name: string, public schema: Schema) {
+    schema = {
+      ...schema,
+      [this.primaryKey]: defaultPrimary,
+    };
+
     Object.keys(schema).forEach((key) => {
       this.addProperty(key, schema[key]);
     });

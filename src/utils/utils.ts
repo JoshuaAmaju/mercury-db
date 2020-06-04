@@ -2,6 +2,8 @@ import { SchemaObject } from "../types";
 
 export const relationStoreName = "relationships";
 
+export const has = Object.prototype.hasOwnProperty;
+
 export function isFunc(value: any) {
   return typeof value === "function";
 }

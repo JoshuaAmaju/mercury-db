@@ -75,7 +75,7 @@ export default class Metro {
 
   model<T>(name: string, schema?: Record<keyof T, StringOrSchemaObject>) {
     if (schema instanceof Object) {
-      const model = new Model<T>(name, schema);
+      const model = new Model(name, schema);
       this.models.set(name, model);
     }
 
@@ -94,7 +94,7 @@ export default class Metro {
       throw new Error(message);
     }
 
-    return this.models.get(name) as Model<T>;
+    return this.models.get(name);
   }
 
   // exec(query: Query<string>, operators?: QueryOperators) {
