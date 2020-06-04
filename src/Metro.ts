@@ -98,6 +98,10 @@ export default class Metro {
   //   const _start = this.model(start.label);
   //   const _end = end.label && this.model(end.label);
 
+  // if (!(properties instanceof Object)) {
+  //   throw new Error("`Properties` must be an object.");
+  // }
+
   //   query.end.primaryKey = _end?.primaryKey;
   //   query.start.primaryKey = _start.primaryKey;
 
