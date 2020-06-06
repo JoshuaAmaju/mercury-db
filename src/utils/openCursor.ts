@@ -2,7 +2,7 @@ interface OpenCursor {
   onDone?: VoidFunction;
   store: IDBObjectStore;
   keyRange?: IDBKeyRange;
-  onNext?: (cursor: IDBCursorWithValue) => any;
+  onNext?: (cursor: IDBCursorWithValue) => boolean;
 }
 
 export default function openCursor({
@@ -20,7 +20,8 @@ export default function openCursor({
       const cursor = req.result;
 
       if (cursor) {
-        onNext?.(cursor);
+        const shouldResolve = onNext?.(cursor);
+        if (shouldResolve) resolve();
       } else {
         onDone?.();
         resolve();

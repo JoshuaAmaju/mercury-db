@@ -30,9 +30,15 @@ const createQuery = q`CREATE``(u:User ${{ name: "John" }})``[r]``(b:Book ${{
 
   // console.log(user1, user2);
 
-  const matchQuery = q`MATCH``(u:User)``[r:LIKES]``(b:User)`;
+  const matchQuery = q`MATCH``(u:User)``[r:LIKES]``(b)`;
 
   const matchRes = await metro.exec(matchQuery, {
+    // skip: 1,
+    // limit: 1,
+    // delete: ["u"],
+    set: {
+      r: { name2: "Sample 2" },
+    },
     return: ["u", "r"],
   });
 
@@ -45,7 +51,7 @@ const createQuery = q`CREATE``(u:User ${{ name: "John" }})``[r]``(b:Book ${{
   // const user = createRes["u"];
   // const book = createRes["b"];
 
-  // const relateQuery = q`RELATE``(u:User ${user2})``[r:LIKES]``(b:User ${user1})`;
+  // const relateQuery = q`RELATE``(u:User ${user1})``[r:LIKES]``(b:User ${user2})`;
 
   // const relateRes = await metro.exec(relateQuery, {
   //   return: ["r"],

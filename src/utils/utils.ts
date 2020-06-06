@@ -37,6 +37,6 @@ export function toWhere(props: object): WhereHandler {
       matches.add(props[prop] === args[prop]);
     });
 
-    return !matches.has(false);
+    return !matches.has(false) && matches.size > 0;
   };
 }

@@ -1,7 +1,7 @@
 import { Query } from "../query/types";
 import openCursor from "../utils/openCursor";
 import returnFormatter from "../utils/returnFormatter";
-import { getStores, isEmptyObj, toWhere, toArray } from "../utils/utils";
+import { getStores, isEmptyObj, toWhere, toArray, has } from "../utils/utils";
 import { relationStoreName } from "./../utils/utils";
 import { MatchOperators, Properties } from "./types";
 
@@ -18,12 +18,80 @@ interface DBResult {
   [k: string]: Properties;
 }
 
+interface UpdateAndOrDelete {
+  set: object;
+  label: string;
+  delete: string[];
+  type?: "relation";
+  refObj: MatchedNodes;
+  store: IDBObjectStore;
+}
+
 function getOneOrAll(items: any[]) {
   return items.length === 1 ? items[0] : items;
 }
 
+function replaceValues(ref: object, obj: object) {
+  for (const key in ref) obj[key] = ref[key];
+}
+
+function length(obj: object) {
+  return Object.keys(obj).length;
+}
+
 function matches(props: object | null, target: object) {
   return props ? toWhere(props)(target) : true;
+}
+
+async function updateAndOrDelete({
+  set,
+  type,
+  store,
+  label,
+  refObj,
+  delete: deleter,
+}: UpdateAndOrDelete) {
+  await openCursor({
+    store,
+    onNext(cursor) {
+      const { value } = cursor;
+
+      let ref =
+        type === "relation"
+          ? {
+              _id: value._id,
+              type: value.type,
+              ...value.props,
+            }
+          : value;
+
+      let props = refObj[value._id]?.node ?? {};
+
+      if (matches(props, ref)) {
+        if (set) {
+          const setters = set[label];
+
+          replaceValues(setters, ref);
+
+          console.log(ref);
+
+          if (type && type === "relation") {
+            const { _id, type, ...props } = ref;
+            ref = { ...value, props };
+          }
+
+          cursor.update(ref);
+        }
+
+        if (deleter && deleter.includes(label)) {
+          cursor.delete();
+        }
+      }
+
+      cursor.continue();
+      return false;
+    },
+  });
 }
 
 export default async function match(
@@ -31,7 +99,15 @@ export default async function match(
   query: Query<string>,
   operators: MatchOperators = {}
 ) {
-  const { where, return: returner } = operators;
+  const {
+    set,
+    skip,
+    limit,
+    where,
+    delete: deleter,
+    return: returner,
+  } = operators;
+
   const { end, start, relationship } = query;
 
   const endProps = end?.props;
@@ -41,21 +117,44 @@ export default async function match(
   const stores = getStores(start.label, end.label, relationStoreName);
   const tx = db.transaction(stores, "readwrite");
 
-  const matchedEnd = {} as DBResult;
+  const matchedEnd = {} as MatchedNodes;
   const matchedStart = {} as MatchedNodes;
 
+  let endCursorHasAdvanced = skip ? false : true;
+  let startCursorHasAdvanced = skip ? false : true;
+  let relationCursorHasAdvanced = skip ? false : true;
+
   const startStore = tx.objectStore(start.label);
+
+  const shouldContinue = (obj: object) => {
+    if (limit) return length(obj) < limit ? true : false;
+    return true;
+  };
+
+  const setOrDelete = (label: string) => {
+    return has.call(set, label) || deleter?.includes(label);
+  };
 
   await openCursor({
     store: startStore,
     onNext(cursor) {
+      if (!startCursorHasAdvanced) {
+        startCursorHasAdvanced = true;
+        cursor.advance(skip);
+        return false;
+      }
+
       const { value } = cursor;
 
       if (matches(startProps, value)) {
         matchedStart[value._id] = { node: value };
       }
 
-      cursor.continue();
+      if (shouldContinue(matchedStart)) {
+        cursor.continue();
+      } else {
+        return true;
+      }
     },
   });
 
@@ -65,13 +164,23 @@ export default async function match(
     await openCursor({
       store: endStore,
       onNext(cursor) {
+        if (!endCursorHasAdvanced) {
+          endCursorHasAdvanced = true;
+          cursor.advance(skip);
+          return false;
+        }
+
         const { value } = cursor;
 
         if (matches(endProps, value)) {
-          matchedEnd[value._id] = value;
+          matchedEnd[value._id] = { node: value };
         }
 
-        cursor.continue();
+        if (shouldContinue(matchedEnd)) {
+          cursor.continue();
+        } else {
+          return true;
+        }
       },
     });
   }
@@ -84,6 +193,12 @@ export default async function match(
       //   keyRange,
       store: relationStore,
       onNext(cursor) {
+        if (!relationCursorHasAdvanced) {
+          relationCursorHasAdvanced = true;
+          cursor.advance(skip);
+          return false;
+        }
+
         const { value } = cursor;
 
         if (matches(relationProps, value.props ?? {})) {
@@ -110,6 +225,7 @@ export default async function match(
         }
 
         cursor.continue();
+        return false;
       },
     });
   }
@@ -141,7 +257,7 @@ export default async function match(
             end: endId,
           } = relationOfType;
 
-          const endNode = matchedEnd[endId];
+          const endNode = matchedEnd[endId]?.node;
           const relation = { _id, type, ...props };
 
           if (end.label) {
@@ -180,8 +296,8 @@ export default async function match(
             }
           } else {
             const matches = where ? where(startNode, relation) : true;
-            fullPathMatched = matches;
             if (matches) relations.push(relation);
+            fullPathMatched = matches;
           }
         }
       } else {
@@ -200,6 +316,73 @@ export default async function match(
 
     if (returner && !isEmptyObj(result)) {
       results.push(returnFormatter(result, returner));
+    }
+  }
+
+  // Perform neccessary property updates or
+  // store item deletion.
+  if (set || deleter) {
+    if (setOrDelete(start.as)) {
+      await updateAndOrDelete({
+        set,
+        label: start.as,
+        delete: deleter,
+        store: startStore,
+        refObj: matchedStart,
+      });
+    }
+
+    if (setOrDelete(end.as)) {
+      if (end.label) {
+        const endStore = tx.objectStore(end.label);
+
+        await updateAndOrDelete({
+          set,
+          label: end.as,
+          delete: deleter,
+          store: endStore,
+          refObj: matchedEnd,
+        });
+      }
+    }
+
+    if (setOrDelete(relationship.as)) {
+      if (relationship.type) {
+        const relationships = {};
+
+        /**
+         * This just makes a object containing
+         * relationships to conform to the format
+         * needed by the update/deleter function.
+         */
+        for (const key in matchedStart) {
+          const node = matchedStart[key];
+          const relations = node?.relationships?.[relationship.type];
+
+          if (!relations) continue;
+
+          for (const relation of relations) {
+            relationships[relation._id] = {
+              node: {
+                _id: relation?._id,
+                type: relation?.type,
+                ...relation.props,
+              },
+            };
+          }
+        }
+
+        const store = tx.objectStore(relationStoreName);
+
+        await updateAndOrDelete({
+          set,
+          store,
+          delete: deleter,
+          type: "relation",
+          refObj: relationships,
+          label: relationship.as,
+        });
+      }
     }
   }
 
