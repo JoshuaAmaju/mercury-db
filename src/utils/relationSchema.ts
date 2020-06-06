@@ -1,11 +1,4 @@
 const relationSchema = {
-  id: {
-    unique: true,
-    indexed: true,
-    primary: true,
-    type: "string",
-  },
-
   start: {
     indexed: true,
     type: "string",

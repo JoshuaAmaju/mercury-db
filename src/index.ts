@@ -7,5 +7,5 @@ import Metro from "./metro";
     name: "string",
   });
 
-  metro.connect();
+  await metro.connect();
 })();

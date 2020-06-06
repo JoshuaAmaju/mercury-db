@@ -1,9 +1,9 @@
 export type QueryTypes = "CREATE" | "MATCH" | "MERGE" | "RELATE";
 
-export interface QueryNode<T> {
+export interface QueryNode<T, P> {
   label: T;
+  props?: P;
   as: string;
-  props?: object;
 }
 
 export interface RelationNode {
@@ -12,9 +12,9 @@ export interface RelationNode {
   props?: object;
 }
 
-export interface Query<T> {
+export interface Query<T, P> {
   type: QueryTypes;
-  end?: QueryNode<T>;
-  start: QueryNode<T>;
+  end?: QueryNode<T, P>;
+  start: QueryNode<T, P>;
   relationship?: RelationNode;
 }
