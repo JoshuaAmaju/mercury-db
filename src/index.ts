@@ -18,18 +18,26 @@ const createQuery = q`CREATE``(u:User ${{ name: "John" }})``[r]``(b:Book ${{
 
   await metro.connect();
 
-  const createRes = await metro.exec(createQuery, {
-    return: ["u", "b"],
+  const matchQuery = q`MATCH``(u:User)``[r:LIKES]``(b:Book)`;
+
+  const matchRes = await metro.exec(matchQuery, {
+    return: ["u", "r"],
   });
 
-  const user = createRes["u"];
-  const book = createRes["b"];
+  console.log(matchRes);
 
-  const relateQuery = q`RELATE``(u:User ${user})``[r:LIKES]``(b:Book ${book})`;
+  // const createRes = await metro.exec(createQuery, {
+  //   return: ["u", "b"],
+  // });
 
-  const relateRes = await metro.exec(relateQuery, {
-    return: ["r"],
-  });
+  // const user = createRes["u"];
+  // const book = createRes["b"];
 
-  console.log(createRes, relateRes);
+  // const relateQuery = q`RELATE``(u:User ${user})``[r:LIKES]``(b:Book ${book})`;
+
+  // const relateRes = await metro.exec(relateQuery, {
+  //   return: ["r"],
+  // });
+
+  // console.log(createRes, relateRes);
 })();

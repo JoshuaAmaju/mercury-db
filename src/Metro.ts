@@ -8,6 +8,7 @@ import { QueryOperators } from "./services/types";
 import create from "./services/create";
 import relate from "./services/relate";
 import getDefaultValuesFor from "./utils/getDefaultValues";
+import match from "./services/match";
 
 export default class Metro {
   db: IDBDatabase;
@@ -129,9 +130,9 @@ export default class Metro {
         return create(this.db, query, operators);
       }
 
-      // case "MATCH": {
-      //   return match(this.db, query, operators);
-      // }
+      case "MATCH": {
+        return match(this.db, query, operators);
+      }
 
       // case "MERGE": {
       //   return merge(this.db, query, operators);

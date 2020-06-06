@@ -2,10 +2,10 @@ import Property from "./Property";
 import { Schema, StringOrSchemaObject } from "./types";
 
 const defaultPrimary = {
+  type: "uuid",
   unique: true,
   indexed: true,
   primary: true,
-  type: "string",
 };
 
 export default class Model {
@@ -15,7 +15,7 @@ export default class Model {
   properties = new Map<string, Property>();
 
   constructor(public name: string, public schema: Schema) {
-    schema = {
+    this.schema = {
       ...schema,
       [this.primaryKey]: defaultPrimary,
     };

@@ -1,4 +1,5 @@
 import { SchemaObject } from "../types";
+import { WhereHandler } from "../services/types";
 
 export const relationStoreName = "relationships";
 
@@ -26,4 +27,16 @@ export function toSchemaObj(schema: string | SchemaObject): SchemaObject {
 
 export function getStores(...names: string[]) {
   return names.filter((name) => name);
+}
+
+export function toWhere(props: object): WhereHandler {
+  return (args) => {
+    let matches = new Set();
+
+    Object.keys(props).forEach((prop) => {
+      matches.add(props[prop] === args[prop]);
+    });
+
+    return !matches.has(false);
+  };
 }

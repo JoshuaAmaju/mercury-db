@@ -1,12 +1,18 @@
 interface OpenCursor {
   onDone?: VoidFunction;
   store: IDBObjectStore;
+  keyRange?: IDBKeyRange;
   onNext?: (cursor: IDBCursorWithValue) => any;
 }
 
-export default function openCursor({ store, onDone, onNext }: OpenCursor) {
+export default function openCursor({
+  store,
+  onDone,
+  onNext,
+  keyRange,
+}: OpenCursor) {
   return new Promise((resolve, reject) => {
-    const req = store.openCursor();
+    const req = store.openCursor(keyRange);
 
     req.onerror = () => reject(req.error);
 
