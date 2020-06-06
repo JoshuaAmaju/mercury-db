@@ -1,5 +1,5 @@
 import { SchemaObject } from "../types";
-import { WhereHandler } from "../services/types";
+import { WhereHandler, Relationship } from "../services/types";
 
 export const relationStoreName = "relationships";
 
@@ -39,4 +39,9 @@ export function toWhere(props: object): WhereHandler {
 
     return !matches.has(false) && matches.size > 0;
   };
+}
+
+export function getRelationProps(relation: Relationship) {
+  const { to, end, start, from, type, ...props } = relation;
+  return props;
 }

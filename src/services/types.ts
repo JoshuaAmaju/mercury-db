@@ -27,7 +27,7 @@ export interface Relationship {
   to: string;
   from: string;
   type: string;
-  props?: object;
+  [key: string]: any;
 }
 
 export interface Properties {

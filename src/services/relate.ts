@@ -1,6 +1,7 @@
 import { Query } from "../query/types";
 import { ReturnOperator, Properties } from "./types";
-import { relationStoreName } from "../utils/utils";
+import { relationStoreName, getRelationProps } from "../utils/utils";
+import returnFormatter from "../utils/returnFormatter";
 
 export default function relate(
   db: IDBDatabase,
@@ -9,17 +10,18 @@ export default function relate(
 ) {
   const returner = operators?.return;
   const { end, start, relationship } = query;
+  const { type, props } = relationship;
 
   const endPrimaryKey = end.props._id;
   const startPrimaryKey = start.props._id;
 
   const relation = {
+    type,
     to: end.label,
     from: start.label,
     end: endPrimaryKey,
     start: startPrimaryKey,
-    type: relationship.type,
-    props: relationship.props,
+    ...props,
   };
 
   return new Promise((resolve, reject) => {
@@ -38,9 +40,17 @@ export default function relate(
       newReq.onerror = () => reject(newReq.error);
 
       newReq.onsuccess = () => {
-        const { type, props } = newReq.result;
-        const obj = { [relationship.as]: { ...props, _id: res, type } };
-        resolve(obj);
+        const props = getRelationProps(newReq.result);
+
+        const obj = {
+          [relationship.as]: {
+            type,
+            _id: res,
+            ...props,
+          },
+        };
+
+        resolve(returnFormatter(obj, returner));
       };
     };
   });
