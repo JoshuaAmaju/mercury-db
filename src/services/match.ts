@@ -1,9 +1,9 @@
-import { relationStoreName } from "./../utils/utils";
 import { Query } from "../query/types";
-import { getStores, toWhere, isEmptyObj } from "../utils/utils";
-import { MatchOperators, Properties } from "./types";
 import openCursor from "../utils/openCursor";
 import returnFormatter from "../utils/returnFormatter";
+import { getStores, isEmptyObj, toWhere, toArray } from "../utils/utils";
+import { relationStoreName } from "./../utils/utils";
+import { MatchOperators, Properties } from "./types";
 
 interface MatchedNode {
   node: Properties;
@@ -16,6 +16,10 @@ interface MatchedNodes {
 
 interface DBResult {
   [k: string]: Properties;
+}
+
+function getOneOrAll(items: any[]) {
+  return items.length === 1 ? items[0] : items;
 }
 
 function matches(props: object | null, target: object) {
@@ -37,7 +41,6 @@ export default async function match(
   const stores = getStores(start.label, end.label, relationStoreName);
   const tx = db.transaction(stores, "readwrite");
 
-  const matchedRelation = {};
   const matchedEnd = {} as DBResult;
   const matchedStart = {} as MatchedNodes;
 
@@ -74,7 +77,7 @@ export default async function match(
   }
 
   if (relationship.type) {
-    const keyRange = IDBKeyRange.only("type");
+    const keyRange = IDBKeyRange.only(relationship.type);
     const relationStore = tx.objectStore(relationStoreName);
 
     await openCursor({
@@ -87,17 +90,20 @@ export default async function match(
           const startNode = matchedStart[value.start];
 
           if (startNode) {
-            const startRelations = startNode?.relationships;
+            const relations = startNode?.relationships;
 
-            const startRelationsType = []
-              .concat(startRelations?.[value.type], value)
-              .filter((rel) => rel);
+            /**
+             * Compose relationships of the same
+             * type into one single array of relationships
+             */
+            const relationsOfType = toArray(relations?.[value.type] ?? []);
+            const newRelations = [...relationsOfType, value];
 
             matchedStart[value.start] = {
-              ...matchedStart[value.start],
+              ...startNode,
               relationships: {
-                ...startRelations,
-                [value.type]: startRelationsType,
+                ...relations,
+                [value.type]: newRelations.filter((rel) => rel),
               },
             };
           }
@@ -124,15 +130,17 @@ export default async function match(
       if (relationships) {
         const relationsOfType = relationships[relationship.type];
 
-        for (const {
-          to,
-          _id,
-          from,
-          type,
-          start,
-          props,
-          end: endId,
-        } of relationsOfType) {
+        for (const relationOfType of relationsOfType) {
+          const {
+            to,
+            _id,
+            from,
+            type,
+            start,
+            props,
+            end: endId,
+          } = relationOfType;
+
           const endNode = matchedEnd[endId];
           const relation = { _id, type, ...props };
 
@@ -141,9 +149,16 @@ export default async function match(
             const matches = where ? where(startNode, relation, endNode) : true;
 
             if (matches) {
-              const innerMatch =
-                (endId && start === startNode._id && endId === endNode._id) ||
-                true;
+              let innerMatch = false;
+
+              if (
+                endId &&
+                endNode &&
+                start === startNode._id &&
+                endId === endNode._id
+              ) {
+                innerMatch = true;
+              }
 
               if (innerMatch) {
                 fullPathMatched = true;

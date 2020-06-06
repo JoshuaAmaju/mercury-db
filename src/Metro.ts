@@ -143,4 +143,8 @@ export default class Metro {
       }
     }
   }
+
+  batch(queries: Query<string>[], operators?: QueryOperators) {
+    return Promise.all(queries.map((query) => this.exec(query, operators)));
+  }
 }
