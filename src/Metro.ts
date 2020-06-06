@@ -3,6 +3,11 @@ import { StringOrSchemaObject } from "./types";
 import installSchema from "./utils/installSchema";
 import relationSchema from "./utils/relationSchema";
 import { toArray, relationStoreName } from "./utils/utils";
+import { Query } from "./query/types";
+import { QueryOperators } from "./services/types";
+import create from "./services/create";
+import relate from "./services/relate";
+import getDefaultValuesFor from "./utils/getDefaultValues";
 
 export default class Metro {
   db: IDBDatabase;
@@ -87,7 +92,13 @@ export default class Metro {
       if (definedModels.length === 0) {
         message += "\nNo models have been defined yet.";
       } else {
-        const definitions = definedModels.map((d) => `\t- ${d}`).join("\n");
+        const definitions = definedModels
+          .filter((d) => {
+            return d !== relationStoreName;
+          })
+          .map((d) => `\t- ${d}`)
+          .join("\n");
+
         message += `\nModels currently defined are:\n${definitions}`;
       }
 
@@ -97,41 +108,38 @@ export default class Metro {
     return this.models.get(name);
   }
 
-  // exec(query: Query<string>, operators?: QueryOperators) {
-  //   let { end, type, start } = query;
+  exec(query: Query<string>, operators?: QueryOperators) {
+    let { end, type, start } = query;
 
-  //   const _start = this.model(start.label);
-  //   const _end = end.label && this.model(end.label);
+    const _start = this.model(start.label);
+    const _end = end.label && this.model(end.label);
 
-  // if (!(properties instanceof Object)) {
-  //   throw new Error("`Properties` must be an object.");
-  // }
+    // if (!(properties instanceof Object)) {
+    //   throw new Error("`Properties` must be an object.");
+    // }
 
-  //   query.end.primaryKey = _end?.primaryKey;
-  //   query.start.primaryKey = _start.primaryKey;
+    switch (type) {
+      case "CREATE": {
+        query.start.props = getDefaultValuesFor(_start, start.props);
 
-  //   switch (type) {
-  //     case "CREATE": {
-  //       query.start.props = getDefaultValuesFor(_start, start.props);
+        if (end && end.props) {
+          query.end.props = getDefaultValuesFor(_end, end.props);
+        }
 
-  //       if (end && end.props) {
-  //         query.end.props = getDefaultValuesFor(_end, end.props);
-  //       }
+        return create(this.db, query, operators);
+      }
 
-  //       return create(this.db, query, operators);
-  //     }
+      // case "MATCH": {
+      //   return match(this.db, query, operators);
+      // }
 
-  //     case "MATCH": {
-  //       return match(this.db, query, operators);
-  //     }
+      // case "MERGE": {
+      //   return merge(this.db, query, operators);
+      // }
 
-  //     case "MERGE": {
-  //       return merge(this.db, query, operators);
-  //     }
-
-  //     case "RELATE": {
-  //       return relate(this.db, query, operators);
-  //     }
-  //   }
-  // }
+      case "RELATE": {
+        return relate(this.db, query as any, operators);
+      }
+    }
+  }
 }

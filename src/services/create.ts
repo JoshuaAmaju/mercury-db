@@ -78,8 +78,8 @@ export default function create(
             ...end?.props,
           },
           [relationship?.as]: {
-            _id: relation._id,
-            type: relation.type,
+            _id: relation?._id,
+            type: relation?.type,
             ...relationship.props,
           },
         };
