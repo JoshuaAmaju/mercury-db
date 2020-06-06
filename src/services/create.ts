@@ -1,5 +1,5 @@
 import { CreateOperators, Relationship, Properties } from "./types";
-import { isEmptyObj } from "../utils/utils";
+import { isEmptyObj, getStores } from "../utils/utils";
 import { Query } from "../query/types";
 import relate from "./relate";
 import returnFormatter from "../utils/returnFormatter";
@@ -26,12 +26,8 @@ export default function create(
   const returner = operators?.return;
   const { end, start, relationship } = query;
 
-  const stores = [start.label, end.label];
-
-  const tx = db.transaction(
-    stores.filter((store) => store),
-    "readwrite"
-  );
+  const stores = getStores(start.label, end.label);
+  const tx = db.transaction(stores, "readwrite");
 
   return new Promise((resolve, reject) => {
     let endId;
@@ -63,35 +59,33 @@ export default function create(
         relation = relationRes[relationship.as];
       }
 
-      if (returner) {
-        /**
-         * Group return values into single object
-         * by their [as] variable for returning.
-         */
-        const returnValues = {
-          [start.as]: {
-            _id: startId,
-            ...start.props,
-          },
-          [end?.as]: {
-            _id: endId,
-            ...end?.props,
-          },
-          [relationship?.as]: {
-            _id: relation?._id,
-            type: relation?.type,
-            ...relationship.props,
-          },
-        };
+      if (!returner) return resolve();
 
-        if (!hasEnd) delete returnValues[end?.as];
-        if (!relationship.type) delete returnValues[relationship?.as];
+      /**
+       * Group return values into single object
+       * by their [as] variable for returning.
+       */
+      const returnValues = {
+        [start.as]: {
+          _id: startId,
+          ...start.props,
+        },
+        [end?.as]: {
+          _id: endId,
+          ...end?.props,
+        },
+        [relationship?.as]: {
+          _id: relation?._id,
+          type: relation?.type,
+          ...relationship.props,
+        },
+      };
 
-        const results = returnFormatter(returnValues, returner);
-        resolve(results);
-      }
+      if (!hasEnd) delete returnValues[end?.as];
+      if (!relationship.type) delete returnValues[relationship?.as];
 
-      resolve();
+      const results = returnFormatter(returnValues, returner);
+      resolve(results);
     };
   });
 }

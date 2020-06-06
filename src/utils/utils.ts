@@ -23,3 +23,7 @@ export function toArray<T>(obj: IterableIterator<T>) {
 export function toSchemaObj(schema: string | SchemaObject): SchemaObject {
   return typeof schema === "string" ? { type: schema } : schema;
 }
+
+export function getStores(...names: string[]) {
+  return names.filter((name) => name);
+}
