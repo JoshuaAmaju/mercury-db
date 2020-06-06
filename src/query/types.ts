@@ -12,7 +12,7 @@ export interface RelationNode {
   props?: object;
 }
 
-export interface Query<T, P> {
+export interface Query<T, P = {}> {
   type: QueryTypes;
   end?: QueryNode<T, P>;
   start: QueryNode<T, P>;

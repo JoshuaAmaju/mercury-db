@@ -2,7 +2,7 @@ import { Query } from "../query/types";
 import { ReturnOperator, Properties } from "./types";
 import { relationStoreName } from "../utils/utils";
 
-export default async function relate(
+export default function relate(
   db: IDBDatabase,
   query: Query<string, Properties>,
   operators?: ReturnOperator
