@@ -1,4 +1,5 @@
 interface OpenCursor {
+  skip?: number;
   onDone?: VoidFunction;
   store: IDBObjectStore;
   keyRange?: IDBKeyRange;
@@ -6,6 +7,7 @@ interface OpenCursor {
 }
 
 export default function openCursor({
+  skip,
   store,
   onDone,
   onNext,
@@ -13,6 +15,7 @@ export default function openCursor({
 }: OpenCursor) {
   return new Promise((resolve, reject) => {
     const req = store.openCursor(keyRange);
+    let cursorHasAdvanced = skip ? false : true;
 
     req.onerror = () => reject(req.error);
 
@@ -20,6 +23,11 @@ export default function openCursor({
       const cursor = req.result;
 
       if (cursor) {
+        if (!cursorHasAdvanced) {
+          cursorHasAdvanced = true;
+          return cursor.advance(skip);
+        }
+
         const shouldResolve = onNext?.(cursor);
         if (shouldResolve) resolve();
       } else {

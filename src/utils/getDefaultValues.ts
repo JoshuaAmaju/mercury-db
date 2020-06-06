@@ -15,7 +15,7 @@ export default function getDefaultValuesFor(model: Model, props: object) {
       defaultVal = isFunc(defaultVal) ? defaultVal() : defaultVal;
     }
 
-    output[key] = value ?? defaultVal;
+    if (key !== "_id") output[key] = value ?? defaultVal;
   }
 
   return { ...props, ...output };

@@ -1,7 +1,9 @@
 import Metro from "./metro";
 import q from "./query/query";
 
-const createQuery = q`CREATE``(u:User ${{ name: "John" }})``[r]``(b:Book ${{
+const createQuery = q`CREATE``(u:User ${{
+  name: "John",
+}})``[r:LIKES ${{ since: 123 }}]``(b:Book ${{
   title: "Hare",
 }})`;
 
@@ -33,12 +35,12 @@ const createQuery = q`CREATE``(u:User ${{ name: "John" }})``[r]``(b:Book ${{
   const matchQuery = q`MATCH``(u:User)``[r:LIKES]``(b)`;
 
   const matchRes = await metro.exec(matchQuery, {
-    // skip: 1,
+    skip: 3,
     // limit: 1,
     // delete: ["u"],
-    set: {
-      r: { name2: "Sample 2" },
-    },
+    // set: {
+    //   r: { name2: "Sample 2" },
+    // },
     return: ["u", "r"],
   });
 

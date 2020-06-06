@@ -2,10 +2,10 @@ import Property from "./Property";
 import { Schema, StringOrSchemaObject } from "./types";
 
 const defaultPrimary = {
-  type: "uuid",
   unique: true,
   indexed: true,
   primary: true,
+  type: "string",
 };
 
 export default class Model {

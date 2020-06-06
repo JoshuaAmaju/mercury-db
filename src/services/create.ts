@@ -4,15 +4,17 @@ import { Query } from "../query/types";
 import relate from "./relate";
 import returnFormatter from "../utils/returnFormatter";
 
-function relationQuery(start: number, end: number, props: object) {
+function relationQuery(q: Query<string>, start: number, end: number) {
   const query = {
     start: {
+      ...q.start,
       props: { _id: start },
     },
     end: {
+      ...q.end,
       props: { _id: end },
     },
-    relationship: { props },
+    relationship: q.relationship,
   } as Query<string, Properties>;
 
   return query;
@@ -36,6 +38,8 @@ export default function create(
 
     const hasEnd = end && end.props && !isEmptyObj(end.props);
 
+    console.log(start.props);
+
     const startReq = tx.objectStore(start.label).add(start.props);
     startReq.onerror = () => reject(startReq.error);
     startReq.onsuccess = () => (startId = startReq.result);
@@ -50,7 +54,7 @@ export default function create(
 
     tx.oncomplete = async () => {
       if (relationship.type) {
-        const newQuery = relationQuery(startId, endId, relationship.props);
+        const newQuery = relationQuery(query, startId, endId);
 
         const relationRes = await relate(db, newQuery, {
           return: [relationship.as],
