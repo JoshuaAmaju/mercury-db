@@ -20,28 +20,29 @@ const createQuery = q`CREATE``(u:User ${{
 
   await metro.connect();
 
-  // const matchQuery1 = q`MATCH``(u:User ${{ _id: "d27b98f78f4c8" }})``[r]``(b)`;
-  // const matchQuery2 = q`MATCH``(u:User ${{ _id: "dadf998f3874b" }})``[r]``(b)`;
+  // const matchQuery1 = q`MATCH``(u:User ${{ _id: 1 }})``[r]``(b)`;
+  // const matchQuery2 = q`MATCH``(b:Book ${{ _id: 2 }})``[r]``(b)`;
 
   // const [res1, res2] = await metro.batch([matchQuery1, matchQuery2], {
-  //   return: ["u"],
+  //   return: ["u", "b"],
   // });
 
-  // const user1 = res1[0]["u"];
-  // const user2 = res2[0]["u"];
+  // const user = res1[0]["u"];
+  // const book = res2[0]["b"];
+  // // const user2 = res2[0]["u"];
 
-  // console.log(user1, user2);
+  // console.log(user, book);
 
-  const matchQuery = q`MATCH``(u:User)``[r:LIKES]``(b)`;
+  const matchQuery = q`MATCH``(u:User)``[r]``(b)`;
 
   const matchRes = await metro.exec(matchQuery, {
-    skip: 3,
+    // skip: 3,
     // limit: 1,
     // delete: ["u"],
     // set: {
     //   r: { name2: "Sample 2" },
     // },
-    return: ["u", "r"],
+    return: ["u.name"],
   });
 
   console.log(matchRes);
@@ -53,7 +54,7 @@ const createQuery = q`CREATE``(u:User ${{
   // const user = createRes["u"];
   // const book = createRes["b"];
 
-  // const relateQuery = q`RELATE``(u:User ${user1})``[r:LIKES]``(b:User ${user2})`;
+  // const relateQuery = q`RELATE``(u:User ${user})``[r:HATES]``(b:Book ${book})`;
 
   // const relateRes = await metro.exec(relateQuery, {
   //   return: ["r"],

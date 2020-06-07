@@ -1,8 +1,8 @@
 interface OpenCursor {
   skip?: number;
   onDone?: VoidFunction;
-  store: IDBObjectStore;
   keyRange?: IDBKeyRange;
+  store: IDBObjectStore | IDBIndex;
   onNext?: (cursor: IDBCursorWithValue) => boolean;
 }
 

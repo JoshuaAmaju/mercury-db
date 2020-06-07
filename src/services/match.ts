@@ -28,10 +28,6 @@ interface UpdateAndOrDelete {
   store: IDBObjectStore;
 }
 
-function getOneOrAll(items: any[]) {
-  return items.length === 1 ? items[0] : items;
-}
-
 function replaceValues(ref: object, obj: object) {
   for (const key in ref) obj[key] = ref[key];
 }
@@ -76,6 +72,20 @@ async function updateAndOrDelete({
   });
 }
 
+function getSingleIndex(store: IDBObjectStore, object: object) {
+  let keyValue = [];
+  const indexes = store.indexNames;
+
+  for (const key in object) {
+    if (indexes.contains(key)) {
+      keyValue = [key, object[key]];
+      break;
+    }
+  }
+
+  return keyValue;
+}
+
 export default async function match(
   db: IDBDatabase,
   query: Query<string>,
@@ -108,18 +118,29 @@ export default async function match(
   };
 
   const setOrDelete = (label: string) => {
-    return has.call(set, label) || deleter?.includes(label);
+    return has.call(set ?? {}, label) || deleter?.includes(label);
   };
 
   const matchesFn = (...args: any[]) => {
     return where ? where(...args) : true;
   };
 
+  const results = [];
   const startStore = tx.objectStore(start.label);
+
+  let keyRange: IDBKeyRange;
+  let refStartStore = startStore as IDBIndex | IDBObjectStore;
+  const [indexKey, indexValue] = getSingleIndex(startStore, start?.props ?? {});
+
+  if (indexKey) {
+    refStartStore = startStore.index(indexKey);
+    keyRange = IDBKeyRange.only(indexValue);
+  }
 
   await openCursor({
     skip,
-    store: startStore,
+    keyRange,
+    store: refStartStore,
     onNext(cursor) {
       const { value } = cursor;
       if (matches(startProps, value)) foundStarts[value._id] = value;
@@ -134,11 +155,20 @@ export default async function match(
   });
 
   if (end.label) {
+    let keyRange: IDBKeyRange;
     const endStore = tx.objectStore(end.label);
+    let refEndStore = endStore as IDBIndex | IDBObjectStore;
+    const [indexKey, indexValue] = getSingleIndex(endStore, end?.props ?? {});
+
+    if (indexKey) {
+      refEndStore = endStore.index(indexKey);
+      keyRange = IDBKeyRange.only(indexValue);
+    }
 
     await openCursor({
       skip,
-      store: endStore,
+      keyRange,
+      store: refEndStore,
       onNext(cursor) {
         const { value } = cursor;
         if (matches(endProps, value)) foundEnds[value._id] = value;
@@ -155,28 +185,57 @@ export default async function match(
 
   if (relationship.type) {
     const keyRange = IDBKeyRange.only(relationship.type);
-    const relationStore = tx.objectStore(relationStoreName);
+    const relationStore = tx.objectStore(relationStoreName).index("type");
 
+    // Not sure if I should also apply skipping
+    // to the relatinship store. But I think not.
     await openCursor({
       //   skip,
-      //   keyRange,
+      keyRange,
       store: relationStore,
       onNext(cursor) {
         const { value } = cursor;
-        const { type, start } = value;
+        const { _id, type } = value;
         const props = getRelationProps(value);
 
-        if (matches(relationProps, props ?? {}) && type === relationship.type) {
-          const startNode = foundStarts[start];
+        if (matches(relationProps, props ?? {})) {
+          let result = {};
+          const startNode = foundStarts[value.start];
 
           if (startNode) {
-            /**
-             * Compose relationships of the same
-             * type into one single array of relationships
-             */
-            let relations = startNode?.relations;
-            relations = [...(relations ?? []), value];
-            foundStarts[value.start].relations = relations.filter((rel) => rel);
+            const endNode = foundEnds[value.end];
+            let relation = { _id, type, ...props };
+            const matches = matchesFn(startNode, relation, endNode);
+
+            if (matches) {
+              let innerMatch = endProps
+                ? value.end &&
+                  endNode &&
+                  value.start === startNode._id &&
+                  value.end === (endNode as any)._id
+                : true;
+
+              if (innerMatch) {
+                const { as } = relationship;
+                if (setOrDelete(relationship.as)) {
+                  if (set) {
+                    const setter = set[as];
+                    replaceValues(setter, relation);
+                    cursor.update({ ...value, ...relation });
+                  }
+
+                  if (deleter && deleter.includes(as)) {
+                    cursor.delete();
+                  }
+                }
+
+                result[end.as] = endNode;
+                result[start.as] = startNode;
+                result[relationship.as] = relation;
+
+                results.push(result);
+              }
+            }
           }
         }
 
@@ -184,71 +243,11 @@ export default async function match(
         return false;
       },
     });
-  }
-
-  const results = [];
-
-  for (const key in foundStarts) {
-    const result = {};
-    let fullPathMatched = true;
-    const startObj = foundStarts[key];
-    const { relations, ...startNode } = startObj;
-
-    if (relationship.type) {
-      const endNodes = [];
-      const relationNodes = [];
-
-      if (relations) {
-        for (const relOfType of relations) {
-          const { _id, type, start, end } = relOfType;
-          const props = getRelationProps(relOfType);
-          const relation = { _id, type, ...props };
-          const { relations, ...endNode } = foundEnds[end] ?? {};
-
-          if (end.label) {
-            fullPathMatched = false;
-            const matches = matchesFn(startNode, relation, endNode);
-
-            if (matches) {
-              let innerMatch = false;
-
-              if (
-                end &&
-                endNode &&
-                start === startNode._id &&
-                end === (endNode as any)._id
-              ) {
-                innerMatch = true;
-              }
-
-              if (innerMatch) {
-                fullPathMatched = true;
-                endNodes.push(endNode);
-                relationNodes.push(relation);
-              }
-            }
-          } else {
-            const matches = matchesFn(startNode, relation);
-            if (matches) relationNodes.push(relation);
-            fullPathMatched = matches;
-          }
-        }
-      } else {
-        fullPathMatched = false;
-      }
-
-      if (fullPathMatched) {
-        result[end.as] = endNodes;
-        result[start.as] = startNode;
-        result[relationship.as] = relationNodes;
-      }
-    } else {
+  } else {
+    for (const key in foundStarts) {
+      const startNode = foundStarts[key];
       const matches = matchesFn(startNode);
-      if (matches) result[start.as] = startNode;
-    }
-
-    if (returner && !isEmptyObj(result)) {
-      results.push(returnFormatter(result, returner));
+      if (matches) results.push({ [start.as]: startNode });
     }
   }
 
@@ -278,38 +277,7 @@ export default async function match(
         });
       }
     }
-
-    if (setOrDelete(relationship.as)) {
-      if (relationship.type) {
-        const rels = {};
-
-        /**
-         * This just makes a object containing
-         * relationships to conform to the format
-         * needed by the update/deleter function.
-         */
-        for (const key in foundStarts) {
-          const { relations: relationships } = foundStarts[key] ?? {};
-          const relations = relationships?.[relationship.type];
-          if (!relations) continue;
-
-          for (const relation of relations) {
-            rels[relation._id] = relation;
-          }
-        }
-
-        const store = tx.objectStore(relationStoreName);
-
-        await updateAndOrDelete({
-          set,
-          store,
-          refObj: rels,
-          delete: deleter,
-          label: relationship.as,
-        });
-      }
-    }
   }
 
-  return results;
+  return results.map((result) => returnFormatter(result, returner));
 }
