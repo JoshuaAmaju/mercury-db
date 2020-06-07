@@ -8,7 +8,7 @@ import { QueryOperators } from "./services/types";
 import create from "./services/create";
 import relate from "./services/relate";
 import getDefaultValuesFor from "./utils/getDefaultValues";
-import match from "./services/match";
+import match from "./services/match/match";
 
 export default class Metro {
   db: IDBDatabase;

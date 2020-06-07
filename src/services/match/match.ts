@@ -1,90 +1,22 @@
-import { Query } from "../query/types";
-import openCursor from "../utils/openCursor";
-import returnFormatter from "../utils/returnFormatter";
+import { Query } from "../../query/types";
+import openCursor from "../../utils/openCursor";
+import returnFormatter from "../../utils/returnFormatter";
 import {
-  getStores,
-  isEmptyObj,
-  toWhere,
-  toArray,
-  has,
   getRelationProps,
-} from "../utils/utils";
-import { relationStoreName } from "./../utils/utils";
-import { MatchOperators, Properties, Relationship } from "./types";
-
-interface FoundNode extends Properties {
-  relations?: Relationship[];
-}
-
-interface FoundNodes {
-  [key: string]: FoundNode;
-}
-
-interface UpdateAndOrDelete {
-  set: object;
-  label: string;
-  delete: string[];
-  refObj: FoundNodes;
-  store: IDBObjectStore;
-}
-
-function replaceValues(ref: object, obj: object) {
-  for (const key in ref) obj[key] = ref[key];
-}
-
-function length(obj: object) {
-  return Object.keys(obj).length;
-}
-
-function matches(props: object | null, target: object) {
-  return props ? toWhere(props)(target) : true;
-}
-
-async function updateAndOrDelete({
-  set,
-  store,
-  label,
-  refObj,
-  delete: deleter,
-}: UpdateAndOrDelete) {
-  await openCursor({
-    store,
-    onNext(cursor) {
-      const { value } = cursor;
-
-      let props = refObj[value._id] ?? {};
-
-      if (matches(props, value)) {
-        if (set) {
-          const setters = set[label];
-          replaceValues(setters, value);
-          cursor.update(value);
-        }
-
-        if (deleter && deleter.includes(label)) {
-          cursor.delete();
-        }
-      }
-
-      cursor.continue();
-      return false;
-    },
-  });
-}
-
-function getSingleIndex(store: IDBObjectStore, object: object) {
-  let keyValue = [];
-  const indexes = store.indexNames;
-
-  for (const key in object) {
-    if (indexes.contains(key)) {
-      keyValue = [key, object[key]];
-      break;
-    }
-  }
-
-  return keyValue;
-}
+  getStores,
+  has,
+  relationStoreName,
+} from "../../utils/utils";
+import { MatchOperators } from "../types";
+import { FoundNodes } from "./types";
+import {
+  getSingleIndex,
+  length,
+  matches,
+  replaceValues,
+  updateAndOrDelete,
+  getIndexStore,
+} from "./utils";
 
 export default async function match(
   db: IDBDatabase,
@@ -127,20 +59,12 @@ export default async function match(
 
   const results = [];
   const startStore = tx.objectStore(start.label);
-
-  let keyRange: IDBKeyRange;
-  let refStartStore = startStore as IDBIndex | IDBObjectStore;
-  const [indexKey, indexValue] = getSingleIndex(startStore, start?.props ?? {});
-
-  if (indexKey) {
-    refStartStore = startStore.index(indexKey);
-    keyRange = IDBKeyRange.only(indexValue);
-  }
+  const { store, keyRange } = getIndexStore(startStore, startProps);
 
   await openCursor({
     skip,
+    store,
     keyRange,
-    store: refStartStore,
     onNext(cursor) {
       const { value } = cursor;
       if (matches(startProps, value)) foundStarts[value._id] = value;
@@ -155,20 +79,13 @@ export default async function match(
   });
 
   if (end.label) {
-    let keyRange: IDBKeyRange;
     const endStore = tx.objectStore(end.label);
-    let refEndStore = endStore as IDBIndex | IDBObjectStore;
-    const [indexKey, indexValue] = getSingleIndex(endStore, end?.props ?? {});
-
-    if (indexKey) {
-      refEndStore = endStore.index(indexKey);
-      keyRange = IDBKeyRange.only(indexValue);
-    }
+    const { store, keyRange } = getIndexStore(endStore, endProps);
 
     await openCursor({
       skip,
+      store,
       keyRange,
-      store: refEndStore,
       onNext(cursor) {
         const { value } = cursor;
         if (matches(endProps, value)) foundEnds[value._id] = value;
