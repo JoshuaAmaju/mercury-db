@@ -2,6 +2,7 @@ import Property from "./Property";
 import { Schema, StringOrSchemaObject } from "./types";
 
 const defaultPrimary = {
+  hidden: true,
   unique: true,
   indexed: true,
   primary: true,
@@ -20,8 +21,8 @@ export default class Model {
       [this.primaryKey]: defaultPrimary,
     };
 
-    Object.keys(schema).forEach((key) => {
-      this.addProperty(key, schema[key]);
+    Object.keys(this.schema).forEach((key) => {
+      this.addProperty(key, this.schema[key]);
     });
   }
 

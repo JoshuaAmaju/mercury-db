@@ -41,7 +41,7 @@ export function toWhere(props: object): WhereHandler {
   };
 }
 
-export function getRelationProps(relation: Relationship) {
-  const { to, end, start, from, type, ...props } = relation;
+export function getProps(relation: Relationship) {
+  const { _id, to, end, start, from, type, ...props } = relation;
   return props;
 }

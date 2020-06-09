@@ -1,17 +1,26 @@
-import { Properties, Relationship } from "../types";
-
-export interface FoundNode extends Properties {
-  relations?: Relationship[];
-}
-
-export interface FoundNodes {
-  [key: string]: FoundNode;
-}
-
 export interface UpdateAndOrDelete {
-  set: object;
   label: string;
   delete: string[];
-  refObj: FoundNodes;
   store: IDBObjectStore;
+  ref: Map<string, object>;
+  set: Record<string, Assigner>;
 }
+
+export interface OpenCursor {
+  skip?: number;
+  limit?: number;
+  keyRange?: IDBKeyRange;
+  store: IDBObjectStore | IDBIndex;
+  onNext: (cursor: IDBCursorWithValue) => any;
+}
+
+export type AssignerFunction = (context: object) => object;
+
+export type PropAssigner = Record<string, (context: object) => any>;
+
+export type AssignerHelper = AssignerFunction | PropAssigner;
+
+export type Assigner = {
+  type: "assign";
+  exec: AssignerFunction;
+};

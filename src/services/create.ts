@@ -38,8 +38,6 @@ export default function create(
 
     const hasEnd = end && end.props && !isEmptyObj(end.props);
 
-    console.log(start.props);
-
     const startReq = tx.objectStore(start.label).add(start.props);
     startReq.onerror = () => reject(startReq.error);
     startReq.onsuccess = () => (startId = startReq.result);
@@ -51,16 +49,21 @@ export default function create(
     }
 
     tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
 
     tx.oncomplete = async () => {
       if (relationship.type) {
         const newQuery = relationQuery(query, startId, endId);
 
-        const relationRes = await relate(db, newQuery, {
-          return: [relationship.as],
-        });
+        try {
+          const relationRes = await relate(db, newQuery, {
+            return: [relationship.as],
+          });
 
-        relation = relationRes[relationship.as];
+          relation = relationRes[relationship.as];
+        } catch (error) {
+          tx.abort();
+        }
       }
 
       if (!returner) return resolve();

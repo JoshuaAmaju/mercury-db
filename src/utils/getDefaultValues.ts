@@ -7,7 +7,7 @@ export default function getDefaultValuesFor(model: Model, props: object) {
 
   for (const key in schema) {
     const value = props[key];
-    let { type, default: defaultVal } = toSchemaObj(schema[key]);
+    let { type, hidden, default: defaultVal } = toSchemaObj(schema[key]);
 
     if (type === "uuid") defaultVal = devUuid;
 
@@ -15,7 +15,7 @@ export default function getDefaultValuesFor(model: Model, props: object) {
       defaultVal = isFunc(defaultVal) ? defaultVal() : defaultVal;
     }
 
-    if (key !== "_id") output[key] = value ?? defaultVal;
+    if (!hidden) output[key] = value ?? defaultVal;
   }
 
   return { ...props, ...output };

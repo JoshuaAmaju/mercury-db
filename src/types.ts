@@ -1,4 +1,5 @@
 export interface SchemaObject {
+  hidden?: boolean;
   unique?: boolean;
   primary?: boolean;
   indexed?: boolean;

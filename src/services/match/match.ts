@@ -1,22 +1,41 @@
 import { Query } from "../../query/types";
-import openCursor from "../../utils/openCursor";
 import returnFormatter from "../../utils/returnFormatter";
 import {
-  getRelationProps,
   getStores,
   has,
   relationStoreName,
+  isFunc,
+  toArray,
+  getProps,
 } from "../../utils/utils";
 import { MatchOperators } from "../types";
-import { FoundNodes } from "./types";
+import { Assigner, PropAssigner, AssignerHelper } from "./types";
 import {
-  getSingleIndex,
-  length,
-  matches,
-  replaceValues,
+  indexStore,
+  isEqual,
   updateAndOrDelete,
-  getIndexStore,
+  shouldContinue,
+  openCursor,
 } from "./utils";
+
+export function assign(assigner: AssignerHelper): Assigner {
+  const exec = (obj: object) => {
+    if (typeof assigner === "function") return assigner(obj);
+
+    const output = {};
+
+    for (const key in assigner) {
+      output[key] = assigner[key](obj);
+    }
+
+    return output;
+  };
+
+  return {
+    exec,
+    type: "assign",
+  };
+}
 
 export default async function match(
   db: IDBDatabase,
@@ -38,63 +57,48 @@ export default async function match(
   const startProps = start.props;
   const relationProps = relationship?.props;
 
+  const foundEnds = new Map();
+  const foundStarts = new Map();
+
   const stores = getStores(start.label, end.label, relationStoreName);
   const tx = db.transaction(stores, "readwrite");
-
-  const foundEnds = {} as FoundNodes;
-  const foundStarts = {} as FoundNodes;
-
-  const shouldContinue = (obj: object) => {
-    if (limit) return length(obj) < limit ? true : false;
-    return true;
-  };
 
   const setOrDelete = (label: string) => {
     return has.call(set ?? {}, label) || deleter?.includes(label);
   };
 
-  const matchesFn = (...args: any[]) => {
+  const whereEval = (...args: any[]) => {
     return where ? where(...args) : true;
   };
 
   const results = [];
   const startStore = tx.objectStore(start.label);
-  const { store, keyRange } = getIndexStore(startStore, startProps);
+  const { store, keyRange } = indexStore(startStore, startProps);
 
   await openCursor({
     skip,
+    limit,
     store,
     keyRange,
-    onNext(cursor) {
-      const { value } = cursor;
-      if (matches(startProps, value)) foundStarts[value._id] = value;
-
-      if (shouldContinue(foundStarts)) {
-        cursor.continue();
-        return false;
-      } else {
-        return true;
+    onNext({ value }) {
+      if (isEqual(startProps, value)) {
+        foundStarts.set(value._id, value);
       }
     },
   });
 
   if (end.label) {
     const endStore = tx.objectStore(end.label);
-    const { store, keyRange } = getIndexStore(endStore, endProps);
+    const { store, keyRange } = indexStore(endStore, endProps);
 
     await openCursor({
       skip,
+      limit,
       store,
       keyRange,
-      onNext(cursor) {
-        const { value } = cursor;
-        if (matches(endProps, value)) foundEnds[value._id] = value;
-
-        if (shouldContinue(foundEnds)) {
-          cursor.continue();
-          return false;
-        } else {
-          return true;
+      onNext({ value }) {
+        if (isEqual(endProps, value)) {
+          foundEnds.set(value._id, value);
         }
       },
     });
@@ -113,16 +117,16 @@ export default async function match(
       onNext(cursor) {
         const { value } = cursor;
         const { _id, type } = value;
-        const props = getRelationProps(value);
+        const props = getProps(value) ?? {};
 
-        if (matches(relationProps, props ?? {})) {
+        if (isEqual(relationProps, props)) {
           let result = {};
-          const startNode = foundStarts[value.start];
+          const startNode = foundStarts.get(value.start);
 
           if (startNode) {
-            const endNode = foundEnds[value.end];
             let relation = { _id, type, ...props };
-            const matches = matchesFn(startNode, relation, endNode);
+            const endNode = foundEnds.get(value.end);
+            const matches = whereEval(startNode, relation, endNode);
 
             if (matches) {
               let innerMatch = endProps
@@ -136,8 +140,8 @@ export default async function match(
                 const { as } = relationship;
                 if (setOrDelete(relationship.as)) {
                   if (set) {
-                    const setter = set[as];
-                    replaceValues(setter, relation);
+                    const setter = set[as].exec(props);
+                    relation = { ...relation, ...setter };
                     cursor.update({ ...value, ...relation });
                   }
 
@@ -155,17 +159,13 @@ export default async function match(
             }
           }
         }
-
-        cursor.continue();
-        return false;
       },
     });
   } else {
-    for (const key in foundStarts) {
-      const startNode = foundStarts[key];
-      const matches = matchesFn(startNode);
-      if (matches) results.push({ [start.as]: startNode });
-    }
+    foundStarts.forEach((node) => {
+      const matches = whereEval(node);
+      if (matches) results.push({ [start.as]: node });
+    });
   }
 
   // Perform neccessary property updates or
@@ -176,21 +176,20 @@ export default async function match(
         set,
         label: start.as,
         delete: deleter,
+        ref: foundStarts,
         store: startStore,
-        refObj: foundStarts,
       });
     }
 
     if (setOrDelete(end.as)) {
       if (end.label) {
         const endStore = tx.objectStore(end.label);
-
         await updateAndOrDelete({
           set,
           label: end.as,
+          ref: foundEnds,
           delete: deleter,
           store: endStore,
-          refObj: foundEnds,
         });
       }
     }

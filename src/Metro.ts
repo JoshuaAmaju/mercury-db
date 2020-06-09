@@ -115,16 +115,23 @@ export default class Metro {
     const _start = this.model(start.label);
     const _end = end.label && this.model(end.label);
 
-    // if (!(properties instanceof Object)) {
-    //   throw new Error("`Properties` must be an object.");
-    // }
-
     switch (type) {
       case "CREATE": {
+        let shouldThrow = false;
         query.start.props = getDefaultValuesFor(_start, start.props);
 
-        if (end && end.props) {
-          query.end.props = getDefaultValuesFor(_end, end.props);
+        if (end) {
+          if (end.props) {
+            query.end.props = getDefaultValuesFor(_end, end.props);
+          } else {
+            shouldThrow = true;
+          }
+        }
+
+        if (!start.props) shouldThrow = true;
+
+        if (shouldThrow) {
+          throw new Error("CREATE query `Properties` must be an object.");
         }
 
         return create(this.db, query, operators);

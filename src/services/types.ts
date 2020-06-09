@@ -1,3 +1,5 @@
+import { Assigner } from "./match/types";
+
 export type WhereHandler = (...args: object[]) => boolean;
 
 export type ReturnOperator = {
@@ -16,7 +18,7 @@ export type MatchOperators = ReturnOperator & {
   limit?: number;
   delete?: string[];
   where?: WhereHandler;
-  set?: Record<string, any>;
+  set?: Record<string, Assigner>;
 };
 
 export type QueryOperators = CreateOperators & MatchOperators & MergeOperators;

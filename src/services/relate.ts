@@ -1,7 +1,7 @@
 import { Query } from "../query/types";
-import { ReturnOperator, Properties } from "./types";
-import { relationStoreName, getRelationProps } from "../utils/utils";
 import returnFormatter from "../utils/returnFormatter";
+import { getProps, relationStoreName } from "../utils/utils";
+import { Properties, ReturnOperator } from "./types";
 
 export default function relate(
   db: IDBDatabase,
@@ -40,7 +40,7 @@ export default function relate(
       newReq.onerror = () => reject(newReq.error);
 
       newReq.onsuccess = () => {
-        const props = getRelationProps(newReq.result);
+        const props = getProps(newReq.result);
 
         const obj = {
           [relationship.as]: {
@@ -53,5 +53,8 @@ export default function relate(
         resolve(returnFormatter(obj, returner));
       };
     };
+
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
   });
 }

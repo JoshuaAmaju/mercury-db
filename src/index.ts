@@ -1,9 +1,10 @@
 import Metro from "./metro";
 import q from "./query/query";
+import { assign } from "./services/match/match";
 
 const createQuery = q`CREATE``(u:User ${{
   name: "John",
-}})``[r:LIKES ${{ since: 123 }}]``(b:Book ${{
+}})``[r:LIKES]``(b:Book ${{
   title: "Hare",
 }})`;
 
@@ -33,26 +34,27 @@ const createQuery = q`CREATE``(u:User ${{
 
   // console.log(user, book);
 
-  const matchQuery = q`MATCH``(u:User)``[r]``(b)`;
+  console.time("start");
+
+  const matchQuery = q`MATCH``(u:User)``[r:LIKES]``(b:Book)`;
 
   const matchRes = await metro.exec(matchQuery, {
     // skip: 3,
-    // limit: 1,
-    // delete: ["u"],
-    // set: {
-    //   r: { name2: "Sample 2" },
-    // },
-    return: ["u.name"],
+    limit: 3,
+    delete: ["u"],
+    return: ["u", "r", "b"],
   });
+
+  console.timeEnd("start");
 
   console.log(matchRes);
 
-  // const createRes = await metro.exec(createQuery, {
-  //   return: ["u", "b"],
-  // });
+  const createRes = await metro.exec(createQuery, {
+    return: ["u", "b"],
+  });
 
-  // const user = createRes["u"];
-  // const book = createRes["b"];
+  const user = createRes["u"];
+  const book = createRes["b"];
 
   // const relateQuery = q`RELATE``(u:User ${user})``[r:HATES]``(b:Book ${book})`;
 
@@ -62,3 +64,7 @@ const createQuery = q`CREATE``(u:User ${{
 
   // console.log(relateRes);
 })();
+
+function num() {
+  return Math.floor(Math.random() * 10);
+}

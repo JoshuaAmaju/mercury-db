@@ -1,24 +1,20 @@
-import openCursor from "../../utils/openCursor";
-import { toWhere } from "../../utils/utils";
-import { UpdateAndOrDelete } from "./types";
+import { toWhere, getProps } from "../../utils/utils";
+import { UpdateAndOrDelete, OpenCursor } from "./types";
 
-export function replaceValues(ref: object, obj: object) {
-  for (const key in ref) obj[key] = ref[key];
+export function shouldContinue(step: number, limit: number) {
+  if (limit) return step < limit ? true : false;
+  return true;
 }
 
-export function length(obj: object) {
-  return Object.keys(obj).length;
-}
-
-export function matches(props: object | null, target: object) {
+export function isEqual(props: object | null, target: object) {
   return props ? toWhere(props)(target) : true;
 }
 
 export async function updateAndOrDelete({
   set,
+  ref,
   store,
   label,
-  refObj,
   delete: deleter,
 }: UpdateAndOrDelete) {
   await openCursor({
@@ -26,44 +22,41 @@ export async function updateAndOrDelete({
     onNext(cursor) {
       const { value } = cursor;
 
-      let props = refObj[value._id] ?? {};
+      let props = ref.get(value._id) ?? {};
 
-      if (matches(props, value)) {
+      if (isEqual(props, value)) {
         if (set) {
-          const setters = set[label];
-          replaceValues(setters, value);
-          cursor.update(value);
+          const assigner = set[label];
+          const val = getProps(value);
+          const setters = assigner.exec(val);
+          cursor.update({ ...value, ...setters });
         }
 
-        if (deleter && deleter.includes(label)) {
-          cursor.delete();
-        }
+        if (deleter && deleter.includes(label)) cursor.delete();
       }
-
-      cursor.continue();
-      return false;
     },
   });
 }
 
-export function getSingleIndex(store: IDBObjectStore, object: object) {
-  let keyValue = [];
+export function indexKeyValue(store: IDBObjectStore, object: object = {}) {
+  let value: any;
+  let key: string;
   const indexes = store.indexNames;
 
-  for (const key in object) {
-    if (indexes.contains(key)) {
-      keyValue = [key, object[key]];
+  for (const k in object) {
+    if (indexes.contains(k)) {
+      [key, value] = [key, object[k]];
       break;
     }
   }
 
-  return keyValue;
+  return [key, value];
 }
 
-export function getIndexStore(store: IDBObjectStore, props?: object) {
+export function indexStore(store: IDBObjectStore, props?: object) {
   let keyRange: IDBKeyRange;
+  const [key, value] = indexKeyValue(store, props);
   let indexStore = store as IDBIndex | IDBObjectStore;
-  const [key, value] = getSingleIndex(store, props ?? {});
 
   if (key) {
     indexStore = store.index(key);
@@ -71,4 +64,46 @@ export function getIndexStore(store: IDBObjectStore, props?: object) {
   }
 
   return { store: indexStore ?? store, keyRange };
+}
+
+export function openCursor({
+  skip,
+  limit,
+  store,
+  onNext,
+  keyRange,
+}: OpenCursor) {
+  return new Promise((resolve, reject) => {
+    let count = 0;
+    const req = store.openCursor(keyRange);
+    let cursorHasAdvanced = skip ? false : true;
+
+    req.onerror = () => reject(req.error);
+
+    req.onsuccess = () => {
+      const cursor = req.result;
+
+      if (cursor) {
+        if (!cursorHasAdvanced) {
+          cursorHasAdvanced = true;
+          return cursor.advance(skip);
+        }
+
+        count += 1;
+        const shouldResolve = onNext(cursor) ?? false;
+
+        if (shouldResolve === true) {
+          resolve();
+        } else {
+          if (shouldContinue(count, limit)) {
+            cursor.continue();
+          } else {
+            resolve();
+          }
+        }
+      } else {
+        resolve();
+      }
+    };
+  });
 }
