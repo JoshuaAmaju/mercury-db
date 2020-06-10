@@ -27,7 +27,7 @@ export default function relate(
   return new Promise((resolve, reject) => {
     const tx = db.transaction(relationStoreName, "readwrite");
     const store = tx.objectStore(relationStoreName);
-    const req = store.add(relation);
+    const req = store.put(relation);
 
     req.onerror = () => reject(req.error);
 
@@ -54,7 +54,7 @@ export default function relate(
       };
     };
 
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error);
+    // tx.onerror = () => reject(tx.error);
+    // tx.onabort = () => reject(tx.error);
   });
 }

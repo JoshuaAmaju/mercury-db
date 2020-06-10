@@ -111,30 +111,9 @@ export default class Metro {
   }
 
   exec(query: Query<string>, operators?: QueryOperators) {
-    let { end, type, start } = query;
-
-    const _start = this.model(start.label);
-    const _end = end.label && this.model(end.label);
-
-    switch (type) {
+    switch (query.type) {
       case "CREATE": {
-        let shouldThrow = false;
-        query.start.props = getDefaultValuesFor(_start, start.props);
-
-        if (end) {
-          if (end.props) {
-            query.end.props = getDefaultValuesFor(_end, end.props);
-          } else {
-            shouldThrow = true;
-          }
-        }
-
-        if (!start.props) shouldThrow = true;
-
-        if (shouldThrow) {
-          throw new Error("CREATE query `Properties` must be an object.");
-        }
-
+        query = this.fillDefaults(query);
         return create(this.db, query, operators);
       }
 
@@ -143,13 +122,39 @@ export default class Metro {
       }
 
       case "MERGE": {
-        return merge(this.db, query, operators);
+        return merge(this, query, operators);
       }
 
       case "RELATE": {
         return relate(this.db, query as any, operators);
       }
     }
+  }
+
+  fillDefaults(query: Query<string>) {
+    let shouldThrow = false;
+    let { end, start } = query;
+    const newQuery = { ...query };
+    const _start = this.model(start.label);
+    const _end = end.label && this.model(end.label);
+
+    if (!start.props) shouldThrow = true;
+
+    newQuery.start.props = getDefaultValuesFor(_start, start.props);
+
+    if (end) {
+      if (end.props) {
+        newQuery.end.props = getDefaultValuesFor(_end, end.props);
+      } else {
+        shouldThrow = true;
+      }
+    }
+
+    if (shouldThrow) {
+      throw new Error("Query `Properties` must be an object.");
+    }
+
+    return newQuery;
   }
 
   batch(queries: Query<string>[], operators?: QueryOperators) {

@@ -38,18 +38,18 @@ export default function create(
 
     const hasEnd = end && end.props && !isEmptyObj(end.props);
 
-    const startReq = tx.objectStore(start.label).add(start.props);
+    const startReq = tx.objectStore(start.label).put(start.props);
     startReq.onerror = () => reject(startReq.error);
     startReq.onsuccess = () => (startId = startReq.result);
 
     if (hasEnd) {
-      const endReq = tx.objectStore(end.label).add(end.props);
+      const endReq = tx.objectStore(end.label).put(end.props);
       endReq.onerror = () => reject(endReq.error);
       endReq.onsuccess = () => (endId = endReq.result);
     }
 
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error);
+    // tx.onerror = () => reject(tx.error);
+    // tx.onabort = () => reject(tx.error);
 
     tx.oncomplete = async () => {
       if (relationship.type) {

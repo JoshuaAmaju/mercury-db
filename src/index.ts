@@ -8,9 +8,7 @@ const createQuery = q`CREATE``(u:User ${{
   title: "Hare " + num(),
 }})`;
 
-const mergeQuery = q`MERGE``(u:User ${{ _id: 1 }})``[r:LIKES]``(b:Book ${{
-  _id: 1,
-}})`;
+const mergeQuery = q`MERGE``(u:User ${{ _id: 101 }})``[r]``(b)`;
 
 (async function () {
   const metro = new Metro("db", 1);
@@ -73,7 +71,13 @@ const mergeQuery = q`MERGE``(u:User ${{ _id: 1 }})``[r:LIKES]``(b:Book ${{
 
   // console.log(relateRes);
 
-  const mergeRes = await metro.exec(mergeQuery);
+  const mergeRes = await metro.exec(mergeQuery, {
+    onMatch: {
+      u: assign({ name: "John 500" }),
+    },
+  });
+
+  console.log(mergeRes);
 })();
 
 function num() {

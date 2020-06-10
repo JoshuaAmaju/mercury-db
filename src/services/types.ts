@@ -9,8 +9,8 @@ export type ReturnOperator = {
 export type CreateOperators = ReturnOperator;
 
 export type MergeOperators = ReturnOperator & {
-  onMatch?: object;
-  onCreate?: object;
+  onMatch?: Record<string, Assigner>;
+  onCreate?: Record<string, Assigner>;
 };
 
 export type MatchOperators = ReturnOperator & {

@@ -9,8 +9,12 @@ export function isFunc(value: any) {
   return typeof value === "function";
 }
 
+export function length(obj: object) {
+  return Object.keys(obj).length;
+}
+
 export function isEmptyObj(obj: object) {
-  return Object.keys(obj).length <= 0;
+  return length(obj) <= 0;
 }
 
 export function devUuid() {

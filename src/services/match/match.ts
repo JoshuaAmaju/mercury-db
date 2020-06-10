@@ -1,6 +1,12 @@
 import { Query } from "../../query/types";
 import returnFormatter from "../../utils/returnFormatter";
-import { getProps, getStores, has, relationStoreName } from "../../utils/utils";
+import {
+  getProps,
+  getStores,
+  has,
+  relationStoreName,
+  isFunc,
+} from "../../utils/utils";
 import { MatchOperators } from "../types";
 import { Assigner, AssignerHelper } from "./types";
 import { indexStore, isEqual, openCursor, updateAndOrDelete } from "./utils";
@@ -15,10 +21,11 @@ export function assign(assigner: AssignerHelper): Assigner {
   const exec = (obj: object) => {
     if (typeof assigner === "function") return assigner(obj);
 
-    const output = {};
+    const output = { ...obj };
 
     for (const key in assigner) {
-      output[key] = assigner[key](obj);
+      const value = assigner[key];
+      output[key] = isFunc(value) ? value(obj) : value;
     }
 
     return output;

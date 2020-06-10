@@ -16,7 +16,7 @@ export interface OpenCursor {
 
 export type AssignerFunction = (context: object) => object;
 
-export type PropAssigner = Record<string, (context: object) => any>;
+export type PropAssigner = Record<string, any | ((context: object) => any)>;
 
 export type AssignerHelper = AssignerFunction | PropAssigner;
 
