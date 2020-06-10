@@ -19,6 +19,10 @@ export type MatchOperators = ReturnOperator & {
   delete?: string[];
   where?: WhereHandler;
   set?: Record<string, Assigner>;
+  orderBy?: {
+    type?: "ASC" | "DESC";
+    key: string | string[];
+  };
 };
 
 export type QueryOperators = CreateOperators & MatchOperators & MergeOperators;

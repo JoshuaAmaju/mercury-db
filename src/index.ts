@@ -3,9 +3,9 @@ import q from "./query/query";
 import { assign } from "./services/match/match";
 
 const createQuery = q`CREATE``(u:User ${{
-  name: "John",
+  name: "John " + num(),
 }})``[r:LIKES]``(b:Book ${{
-  title: "Hare",
+  title: "Hare " + num(),
 }})`;
 
 (async function () {
@@ -40,8 +40,12 @@ const createQuery = q`CREATE``(u:User ${{
 
   const matchRes = await metro.exec(matchQuery, {
     // skip: 3,
-    limit: 3,
-    delete: ["u"],
+    // limit: 3,
+    // delete: ["u"],
+    orderBy: {
+      type: "DESC",
+      key: ["u.name", "b.title"],
+    },
     return: ["u", "r", "b"],
   });
 
@@ -49,12 +53,12 @@ const createQuery = q`CREATE``(u:User ${{
 
   console.log(matchRes);
 
-  const createRes = await metro.exec(createQuery, {
-    return: ["u", "b"],
-  });
+  // const createRes = await metro.exec(createQuery, {
+  //   return: ["u", "b"],
+  // });
 
-  const user = createRes["u"];
-  const book = createRes["b"];
+  // const user = createRes["u"];
+  // const book = createRes["b"];
 
   // const relateQuery = q`RELATE``(u:User ${user})``[r:HATES]``(b:Book ${book})`;
 

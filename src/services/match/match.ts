@@ -1,22 +1,15 @@
 import { Query } from "../../query/types";
 import returnFormatter from "../../utils/returnFormatter";
-import {
-  getStores,
-  has,
-  relationStoreName,
-  isFunc,
-  toArray,
-  getProps,
-} from "../../utils/utils";
+import { getProps, getStores, has, relationStoreName } from "../../utils/utils";
 import { MatchOperators } from "../types";
-import { Assigner, PropAssigner, AssignerHelper } from "./types";
-import {
-  indexStore,
-  isEqual,
-  updateAndOrDelete,
-  shouldContinue,
-  openCursor,
-} from "./utils";
+import { Assigner, AssignerHelper } from "./types";
+import { indexStore, isEqual, openCursor, updateAndOrDelete } from "./utils";
+import { sortAscendingBy, sortDescendingBy } from "../../utils/matchSorter";
+
+const orderFns = {
+  ASC: sortAscendingBy,
+  DESC: sortDescendingBy,
+};
 
 export function assign(assigner: AssignerHelper): Assigner {
   const exec = (obj: object) => {
@@ -47,6 +40,7 @@ export default async function match(
     skip,
     limit,
     where,
+    orderBy,
     delete: deleter,
     return: returner,
   } = operators;
@@ -71,7 +65,7 @@ export default async function match(
     return where ? where(...args) : true;
   };
 
-  const results = [];
+  let results = [];
   const startStore = tx.objectStore(start.label);
   const { store, keyRange } = indexStore(startStore, startProps);
 
@@ -195,5 +189,14 @@ export default async function match(
     }
   }
 
-  return results.map((result) => returnFormatter(result, returner));
+  if (orderBy) {
+    const { key, type = "ASC" } = orderBy;
+    const orderFn = orderFns[type];
+    const keys = Array.isArray(key) ? key : [key];
+    for (const key of keys) results = orderFn(results, key);
+  }
+
+  return results.map((result) => {
+    return returnFormatter(result, returner);
+  });
 }
