@@ -55,12 +55,12 @@ export default async function match(
 
   const { end, start, relationship } = query;
 
+  const foundEnds = new Map();
+  const foundStarts = new Map();
+
   const endProps = end?.props;
   const startProps = start.props;
   const relationProps = relationship?.props;
-
-  const foundEnds = new Map();
-  const foundStarts = new Map();
 
   const stores = getStores(start.label, end.label, relationStoreName);
   const tx = db.transaction(stores, "readwrite");
@@ -195,6 +195,21 @@ export default async function match(
         });
       }
     }
+
+    // Assign the new updates to the output
+    results = results.map((result) => {
+      for (const key in result) {
+        const value = result[key];
+        const assigner = set[key];
+
+        if (assigner) {
+          const setter = assigner.exec(value);
+          result[key] = { ...value, ...setter };
+        }
+      }
+
+      return result;
+    });
   }
 
   if (!returner) return;
