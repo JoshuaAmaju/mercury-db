@@ -9,6 +9,7 @@ import create from "./services/create";
 import relate from "./services/relate";
 import getDefaultValuesFor from "./utils/getDefaultValues";
 import match from "./services/match/match";
+import merge from "./services/merge";
 
 export default class Metro {
   db: IDBDatabase;
@@ -48,7 +49,7 @@ export default class Metro {
     });
   }
 
-  dropSchema() {
+  private dropSchema() {
     return new Promise((resolve) => {
       this.models.forEach((model) => {
         this.db.deleteObjectStore(model.name);
@@ -58,7 +59,7 @@ export default class Metro {
     });
   }
 
-  delete(model: string) {
+  private delete(model: string) {
     this.db.deleteObjectStore(model);
     this.models.delete(model);
   }
@@ -141,9 +142,9 @@ export default class Metro {
         return match(this.db, query, operators);
       }
 
-      // case "MERGE": {
-      //   return merge(this.db, query, operators);
-      // }
+      case "MERGE": {
+        return merge(this.db, query, operators);
+      }
 
       case "RELATE": {
         return relate(this.db, query as any, operators);

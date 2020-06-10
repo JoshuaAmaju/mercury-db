@@ -16,6 +16,7 @@ export type MergeOperators = ReturnOperator & {
 export type MatchOperators = ReturnOperator & {
   skip?: number;
   limit?: number;
+  rawLimit?: number;
   delete?: string[];
   where?: WhereHandler;
   set?: Record<string, Assigner>;

@@ -41,6 +41,7 @@ export default async function match(
     limit,
     where,
     orderBy,
+    rawLimit,
     delete: deleter,
     return: returner,
   } = operators;
@@ -71,9 +72,9 @@ export default async function match(
 
   await openCursor({
     skip,
-    limit,
     store,
     keyRange,
+    limit: rawLimit,
     onNext({ value }) {
       if (isEqual(startProps, value)) {
         foundStarts.set(value._id, value);
@@ -87,9 +88,9 @@ export default async function match(
 
     await openCursor({
       skip,
-      limit,
       store,
       keyRange,
+      limit: rawLimit,
       onNext({ value }) {
         if (isEqual(endProps, value)) {
           foundEnds.set(value._id, value);
@@ -187,6 +188,16 @@ export default async function match(
         });
       }
     }
+  }
+
+  if (!returner) return;
+
+  if (limit) {
+    results = results
+      .map((result, i) => {
+        return i < limit && result;
+      })
+      .filter((res) => res);
   }
 
   if (orderBy) {
