@@ -48,8 +48,8 @@ export default function create(
       endReq.onsuccess = () => (endId = endReq.result);
     }
 
-    // tx.onerror = () => reject(tx.error);
-    // tx.onabort = () => reject(tx.error);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
 
     tx.oncomplete = async () => {
       if (relationship.type) {
@@ -62,7 +62,7 @@ export default function create(
 
           relation = relationRes[relationship.as];
         } catch (error) {
-          tx.abort();
+          throw error;
         }
       }
 
