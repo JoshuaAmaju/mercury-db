@@ -1,43 +1,57 @@
 import { Query } from "./query/types";
 import Emitter, { Listener } from "./Emitter";
 
+type RequestProps = {
+  query: object;
+};
+
+type ResponseProps = {
+  result: any;
+  query: object;
+};
+
 export type Events =
-  | {
-      query: object;
-      type: "request";
-    }
-  | {
-      result: any;
-      type: "response";
-      query: object;
-    };
+  | (RequestProps & { type: "request" })
+  | (ResponseProps & { type: "response" });
+
+type RequestListener = Listener<RequestProps>;
+
+type ResponseListener = Listener<ResponseProps>;
 
 export default class Interceptor {
-  emitter = new Emitter<Events>();
+  private emitter = new Emitter<Events>();
 
-  request(fn: Listener) {
+  request(fn: RequestListener) {
     this.emitter.subscribe("request", fn);
   }
 
-  response(fn: Listener) {
+  response(fn: ResponseListener) {
     this.emitter.subscribe("response", fn);
   }
 
-  send(type: Events["type"], query: Query<string>, result?: any) {
-    const { end, start, relationship } = query;
+  send(type: Events["type"], _query: Query<string>, result?: any) {
+    const { end, start, relationship } = _query;
 
-    const modifiedQuery = {
+    const query = {
+      type: _query.type,
       [end.label]: end.props,
       [start.label]: start.props,
       [relationship.type]: relationship.props,
     };
 
     if (type === "request") {
-      this.emitter.send({ type, query: modifiedQuery });
+      const res = this.emitter.send({ type, query }) as RequestProps;
+      return res?.query;
     }
 
     if (type === "response") {
-      this.emitter.send({ type, query: modifiedQuery, result });
+      const res = this.emitter.send({
+        type,
+        query,
+        result,
+      }) as ResponseProps;
+
+      return res.result;
     }
   }
 }

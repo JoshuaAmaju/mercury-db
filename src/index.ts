@@ -2,6 +2,7 @@ import Metro from "./metro";
 import q from "./query/query";
 import { assign } from "./services/match/match";
 import Emitter from "./Emitter";
+import Interceptor from "./Interceptor";
 
 const createQuery = q`CREATE``(u:User ${{
   name: "John " + num(),
@@ -19,6 +20,18 @@ const mergeQuery = q`MERGE``(u:User ${{ _id: 101 }})``[r:LIKES ${{
   _id: 6,
 }})`;
 
+const interceptor = new Interceptor();
+
+interceptor.response(({ query, result }) => {
+  const newRes = (result as any[]).concat(1, 2);
+  return { query, result: newRes };
+});
+
+interceptor.response(({ query, result }) => {
+  const newRes = (result as any[]).concat(3, 4);
+  return { query, result: newRes };
+});
+
 (async function () {
   const metro = new Metro("db", 1);
 
@@ -29,6 +42,8 @@ const mergeQuery = q`MERGE``(u:User ${{ _id: 101 }})``[r:LIKES ${{
   metro.model("Book", {
     title: "string",
   });
+
+  metro.use(interceptor);
 
   await metro.connect();
 
@@ -45,27 +60,27 @@ const mergeQuery = q`MERGE``(u:User ${{ _id: 101 }})``[r:LIKES ${{
 
   // console.log(user, book);
 
-  // console.time("start");
+  console.time("start");
 
-  // const matchRes = await metro.exec(matchQuery, {
-  //   // skip: 3,
-  //   // limit: 3,
-  //   // rawLimit: 2,
-  //   // delete: ["u"],
-  //   // orderBy: {
-  //   //   type: "DESC",
-  //   //   key: ["u.name", "b.title"],
-  //   // },
-  //   // set: {
-  //   //   u: assign({ name: "John 300" }),
-  //   // },
-  //   delete: ["u"],
-  //   return: ["u", "r", "b"],
-  // });
+  const matchRes = await metro.exec(matchQuery, {
+    // skip: 3,
+    // limit: 3,
+    // rawLimit: 2,
+    // delete: ["u"],
+    // orderBy: {
+    //   type: "DESC",
+    //   key: ["u.name", "b.title"],
+    // },
+    // set: {
+    //   u: assign({ name: "John 300" }),
+    // },
+    delete: ["u"],
+    return: ["u", "r", "b"],
+  });
 
-  // console.timeEnd("start");
+  console.timeEnd("start");
 
-  // console.log(matchRes);
+  console.log(matchRes);
 
   // const createRes = await metro.exec(createQuery, {
   //   return: ["u", "b"],

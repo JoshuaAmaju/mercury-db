@@ -10,13 +10,19 @@ import relate from "./services/relate";
 import getDefaultValuesFor from "./utils/getDefaultValues";
 import match from "./services/match/match";
 import merge from "./services/merge";
+import Interceptor from "./Interceptor";
 
 export default class Metro {
   db: IDBDatabase;
+  interceptor: Interceptor;
   models = new Map<string, Model>();
 
   constructor(public name: string, public version: number) {
     this.model(relationStoreName, relationSchema);
+  }
+
+  use(interceptor: Interceptor) {
+    this.interceptor = interceptor;
   }
 
   connect() {
@@ -104,7 +110,13 @@ export default class Metro {
     return this.models.get(name);
   }
 
-  exec(query: Query<string>, operators?: QueryOperators) {
+  async exec(query: Query<string>, operators?: QueryOperators) {
+    this.interceptor.send("request", query);
+    const res = await this.execute(query, operators);
+    return this.interceptor.send("response", query, res);
+  }
+
+  execute(query: Query<string>, operators?: QueryOperators) {
     switch (query.type) {
       case "CREATE": {
         query = this.fillDefaults(query);

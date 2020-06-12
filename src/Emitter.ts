@@ -1,4 +1,4 @@
-export type Listener = (...args: any[]) => void;
+export type Listener<T = {}> = (arg: T) => T;
 
 type Listeners = Map<string, Map<number, Listener>>;
 
@@ -34,13 +34,17 @@ export default class Emitter<E extends Dispatcher = any> {
   }
 
   send(e: E | E["type"]) {
-    const { type, ...args } = typeof e === "string" ? { type: e } : e;
+    let { type, ...args } = typeof e === "string" ? { type: e } : e;
     const listeners = this.listeners.get(type);
 
     if (listeners) {
+      let res = args;
+
       listeners.forEach((listener) => {
-        listener(args);
+        res = listener(res);
       });
+
+      return res;
     }
   }
 }
