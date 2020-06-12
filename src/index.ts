@@ -1,6 +1,7 @@
 import Metro from "./metro";
 import q from "./query/query";
 import { assign } from "./services/match/match";
+import Emitter from "./Emitter";
 
 const createQuery = q`CREATE``(u:User ${{
   name: "John " + num(),
