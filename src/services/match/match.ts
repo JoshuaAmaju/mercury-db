@@ -17,6 +17,10 @@ const orderFns = {
   DESC: sortDescendingBy,
 };
 
+/**
+ * Assigns new values/updates to the object found
+ * in the database during a match query.
+ */
 export function assign(assigner: AssignerHelper): Assigner {
   const exec = (obj: object) => {
     if (typeof assigner === "function") return assigner(obj);
@@ -55,7 +59,10 @@ export default async function match(
 
   const { end, start, relationship } = query;
 
+  // End nodes that are found in the db.
   const foundEnds = new Map();
+
+  // Start nodes that are found in the db.
   const foundStarts = new Map();
 
   const endProps = end?.props;
@@ -69,6 +76,8 @@ export default async function match(
     return has.call(set ?? {}, label) || deleter?.includes(label);
   };
 
+  // Evaluates the where query caluse, if not
+  // provided, then all matches are true.
   const whereEval = (...args: any[]) => {
     return where ? where(...args) : true;
   };
@@ -76,6 +85,8 @@ export default async function match(
   let results = [];
   const startStore = tx.objectStore(start.label);
   const { store, keyRange } = indexStore(startStore, startProps);
+
+  const relationStore = tx.objectStore(relationStoreName).index("type");
 
   await openCursor({
     skip,
@@ -108,7 +119,6 @@ export default async function match(
 
   if (relationship.type) {
     const keyRange = IDBKeyRange.only(relationship.type);
-    const relationStore = tx.objectStore(relationStoreName).index("type");
 
     // Not sure if I should also apply skipping
     // to the relatinship store. But I think not.
@@ -176,6 +186,7 @@ export default async function match(
     if (setOrDelete(start.as)) {
       await updateAndOrDelete({
         set,
+        relationStore,
         label: start.as,
         delete: deleter,
         ref: foundStarts,
@@ -188,6 +199,7 @@ export default async function match(
         const endStore = tx.objectStore(end.label);
         await updateAndOrDelete({
           set,
+          relationStore,
           label: end.as,
           ref: foundEnds,
           delete: deleter,
@@ -200,7 +212,7 @@ export default async function match(
     results = results.map((result) => {
       for (const key in result) {
         const value = result[key];
-        const assigner = set[key];
+        const assigner = set?.[key];
 
         if (assigner) {
           const setter = assigner.exec(value);
