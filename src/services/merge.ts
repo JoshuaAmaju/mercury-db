@@ -1,9 +1,9 @@
-import { Query } from "../query/types";
-import { MergeOperators, MatchOperators } from "./types";
-import match from "./match/match";
-import create from "./create";
 import Metro from "../metro";
-import { length, getStores, has } from "../utils/utils";
+import { Query } from "../query/types";
+import { getStores, has } from "../utils/utils";
+import create from "./create";
+import match from "./match/match";
+import { MatchOperators, MergeOperators } from "./types";
 
 function get(tx: IDBTransaction, name: string, key: string): Promise<object> {
   return new Promise((resolve, reject) => {

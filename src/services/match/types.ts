@@ -4,6 +4,7 @@ export interface UpdateAndOrDelete {
   store: IDBObjectStore;
   ref: Map<string, object>;
   set: Record<string, Assigner>;
+  relationStore?: IDBObjectStore | IDBIndex;
 }
 
 export interface OpenCursor {

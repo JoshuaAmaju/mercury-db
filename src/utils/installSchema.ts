@@ -32,7 +32,7 @@ export default function installSchema(
         const hasIndex = store.indexNames.contains(name);
 
         if (hasIndex) {
-          if (property.getType() === "null") {
+          if (property.isNullType()) {
             store.deleteIndex(name);
           }
         } else {

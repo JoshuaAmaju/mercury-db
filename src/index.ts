@@ -8,7 +8,9 @@ const createQuery = q`CREATE``(u:User ${{
   title: "Hare " + num(),
 }})`;
 
-const matchQuery = q`MATCH``(u:User ${{ _id: 101 }})``[r:LIKES]``(b:Book)`;
+const matchQuery = q`MATCH``(u:User ${{
+  _id: "c80e731bfd27c",
+}})``[r:LIKES]``(b:Book)`;
 
 const mergeQuery = q`MERGE``(u:User ${{ _id: 101 }})``[r:LIKES ${{
   date: 126,
@@ -42,26 +44,27 @@ const mergeQuery = q`MERGE``(u:User ${{ _id: 101 }})``[r:LIKES ${{
 
   // console.log(user, book);
 
-  console.time("start");
+  // console.time("start");
 
-  const matchRes = await metro.exec(matchQuery, {
-    // skip: 3,
-    // limit: 3,
-    // rawLimit: 2,
-    // delete: ["u"],
-    // orderBy: {
-    //   type: "DESC",
-    //   key: ["u.name", "b.title"],
-    // },
-    set: {
-      u: assign({ name: "John 300" }),
-    },
-    return: ["u", "r", "b"],
-  });
+  // const matchRes = await metro.exec(matchQuery, {
+  //   // skip: 3,
+  //   // limit: 3,
+  //   // rawLimit: 2,
+  //   // delete: ["u"],
+  //   // orderBy: {
+  //   //   type: "DESC",
+  //   //   key: ["u.name", "b.title"],
+  //   // },
+  //   // set: {
+  //   //   u: assign({ name: "John 300" }),
+  //   // },
+  //   delete: ["u"],
+  //   return: ["u", "r", "b"],
+  // });
 
-  console.timeEnd("start");
+  // console.timeEnd("start");
 
-  console.log(matchRes);
+  // console.log(matchRes);
 
   // const createRes = await metro.exec(createQuery, {
   //   return: ["u", "b"],

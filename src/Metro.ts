@@ -94,13 +94,7 @@ export default class Metro {
       if (definedModels.length === 0) {
         message += "\nNo models have been defined yet.";
       } else {
-        const definitions = definedModels
-          .filter((d) => {
-            return d !== relationStoreName;
-          })
-          .map((d) => `\t- ${d}`)
-          .join("\n");
-
+        const definitions = definedModels.map((d) => `\t- ${d}`).join("\n");
         message += `\nModels currently defined are:\n${definitions}`;
       }
 
@@ -146,7 +140,7 @@ export default class Metro {
       if (end.props) {
         newQuery.end.props = getDefaultValuesFor(_end, end.props);
       } else {
-        shouldThrow = true;
+        // shouldThrow = true;
       }
     }
 
