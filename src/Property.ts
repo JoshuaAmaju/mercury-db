@@ -29,4 +29,8 @@ export default class Property {
   isIndexed() {
     return this.getSchema().indexed ?? false;
   }
+
+  isNullType() {
+    return this.getType() === "null";
+  }
 }
