@@ -1,16 +1,18 @@
-import { Assigner } from "./match/types";
+import { Action } from "./match/types";
 
 export type WhereHandler = (...args: object[]) => boolean;
 
+export type ReturnType = string | Action;
+
 export type ReturnOperator = {
-  return?: string[];
+  return?: (ReturnType | ReturnType[])[];
 };
 
 export type CreateOperators = ReturnOperator;
 
 export type MergeOperators = ReturnOperator & {
-  onMatch?: Record<string, Assigner>;
-  onCreate?: Record<string, Assigner>;
+  onMatch?: Record<string, Action>;
+  onCreate?: Record<string, Action>;
 };
 
 export type MatchOperators = ReturnOperator & {
@@ -19,7 +21,7 @@ export type MatchOperators = ReturnOperator & {
   rawLimit?: number;
   delete?: string[];
   where?: WhereHandler;
-  set?: Record<string, Assigner>;
+  set?: Record<string, Action>;
   orderBy?: {
     type?: "ASC" | "DESC";
     key: string | string[];

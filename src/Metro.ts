@@ -1,28 +1,57 @@
 import Model from "./model";
-import { StringOrSchemaObject } from "./types";
-import installSchema from "./utils/installSchema";
-import relationSchema from "./utils/relationSchema";
-import { toArray, relationStoreName } from "./utils/utils";
 import { Query } from "./query/types";
-import { QueryOperators } from "./services/types";
 import create from "./services/create";
-import relate from "./services/relate";
-import getDefaultValuesFor from "./utils/getDefaultValues";
 import match from "./services/match/match";
 import merge from "./services/merge";
-import Interceptor from "./Interceptor";
+import relate from "./services/relate";
+import { QueryOperators } from "./services/types";
+import { StringOrSchemaObject, SchemaManager } from "./types";
+import getDefaultValuesFor from "./utils/getDefaultValues";
+import relationSchema from "./utils/relationSchema";
+import { relationStoreName, toArray } from "./utils/utils";
+import Emitter, { Listener } from "./Emitter";
+import { deleteDB, dropSchema, installSchema } from "./utils/schemaManager";
+
+type BlockedEvent = {
+  event: Event;
+  type: "blocked";
+};
+
+type VersionChangeEvent = {
+  type: "versionchange";
+  event: IDBVersionChangeEvent;
+};
+
+type UpgradeEvent = {
+  type: "upgrade";
+  schema: SchemaManager;
+};
+
+type InitEvents = BlockedEvent | UpgradeEvent | VersionChangeEvent;
 
 export default class Metro {
   db: IDBDatabase;
-  interceptor: Interceptor;
   models = new Map<string, Model>();
+  private emitter = new Emitter<InitEvents>();
 
   constructor(public name: string, public version: number) {
     this.model(relationStoreName, relationSchema);
   }
 
-  use(interceptor: Interceptor) {
-    this.interceptor = interceptor;
+  onClose(fn: VoidFunction) {
+    this.db.addEventListener("close", fn);
+  }
+
+  onUpgrade(fn: Listener<UpgradeEvent>) {
+    this.emitter.on("upgrade", fn);
+  }
+
+  onBlocked(fn: Listener<BlockedEvent>) {
+    this.emitter.on("blocked", fn);
+  }
+
+  onVersionChange(fn: Listener<VersionChangeEvent>) {
+    this.emitter.on("versionchange", fn);
   }
 
   connect() {
@@ -34,47 +63,39 @@ export default class Metro {
       request.onerror = () => reject(request.error);
 
       request.onupgradeneeded = async (e) => {
-        const tx = (e.target as IDBRequest).transaction;
-        await installSchema(tx, models);
+        const tx = request.transaction;
+        const db = tx.db;
+
+        const schema: SchemaManager = {
+          deleteDB: () => deleteDB(name),
+          drop: () => dropSchema(db, models),
+          install: () => installSchema(tx, models),
+          delete: (model: string) => {
+            try {
+              db.deleteObjectStore(model);
+              this.models.delete(model);
+            } catch (error) {
+              throw error;
+            }
+          },
+        };
+
+        this.emitter.send({ type: "upgrade", schema });
       };
 
-      // TODO: Handle situation when DB is blocked
-      // by another version running in a different tab
-      // on the same browser.
-      request.onblocked = () => {};
+      request.onblocked = (event) => {
+        this.emitter.send({ type: "blocked", event });
+      };
 
       request.onsuccess = () => {
         this.db = request.result;
 
-        // TODO: Handler scenario where the database
-        // was upgraded by another running tab.
-        this.db.onversionchange = () => {};
+        this.db.onversionchange = (event) => {
+          this.emitter.send({ type: "versionchange", event });
+        };
 
         resolve();
       };
-    });
-  }
-
-  private dropSchema() {
-    return new Promise((resolve) => {
-      this.models.forEach((model) => {
-        this.db.deleteObjectStore(model.name);
-      });
-
-      resolve();
-    });
-  }
-
-  private delete(model: string) {
-    this.db.deleteObjectStore(model);
-    this.models.delete(model);
-  }
-
-  deleteDB() {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.deleteDatabase(this.name);
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.result);
     });
   }
 
@@ -110,10 +131,8 @@ export default class Metro {
     return this.models.get(name);
   }
 
-  async exec(query: Query<string>, operators?: QueryOperators) {
-    this.interceptor.send("request", query);
-    const res = await this.execute(query, operators);
-    return this.interceptor.send("response", query, res);
+  exec(query: Query<string>, operators?: QueryOperators) {
+    return this.execute(query, operators);
   }
 
   execute(query: Query<string>, operators?: QueryOperators) {

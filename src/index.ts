@@ -1,8 +1,6 @@
 import Metro from "./metro";
 import q from "./query/query";
-import { assign } from "./services/match/match";
-import Emitter from "./Emitter";
-import Interceptor from "./Interceptor";
+import { count, values, keys } from "./services/match/actions";
 
 const createQuery = q`CREATE``(u:User ${{
   name: "John " + num(),
@@ -10,9 +8,7 @@ const createQuery = q`CREATE``(u:User ${{
   title: "Hare " + num(),
 }})`;
 
-const matchQuery = q`MATCH``(u:User ${{
-  _id: "c80e731bfd27c",
-}})``[r:LIKES]``(b:Book)`;
+const matchQuery = q`MATCH``(u:User)``[r:LIKES]``(b:Book)`;
 
 const mergeQuery = q`MERGE``(u:User ${{ _id: 101 }})``[r:LIKES ${{
   date: 126,
@@ -20,30 +16,38 @@ const mergeQuery = q`MERGE``(u:User ${{ _id: 101 }})``[r:LIKES ${{
   _id: 6,
 }})`;
 
-const interceptor = new Interceptor();
+const metro = new Metro("db", 10);
 
-interceptor.response(({ query, result }) => {
-  const newRes = (result as any[]).concat(1, 2);
-  return { query, result: newRes };
+metro.model("User", {
+  name: "string",
 });
 
-interceptor.response(({ query, result }) => {
-  const newRes = (result as any[]).concat(3, 4);
-  return { query, result: newRes };
+metro.model("Book", {
+  title: "string",
 });
 
 (async function () {
-  const metro = new Metro("db", 1);
-
-  metro.model("User", {
-    name: "string",
+  metro.onUpgrade(async ({ schema }) => {
+    await schema.install();
+    // await schema.drop();
   });
 
-  metro.model("Book", {
-    title: "string",
+  metro.onBlocked(({ event }) => {
+    alert("Close other opened tabs of this website.");
   });
 
-  metro.use(interceptor);
+  metro.onVersionChange(({ event: { oldVersion, newVersion } }) => {
+    if (
+      confirm(
+        `Another tab is trying to update the database version from ${oldVersion} to ${newVersion}`
+      )
+    ) {
+      location.reload();
+    } else {
+      return false;
+    }
+    // metro.disconnect();
+  });
 
   await metro.connect();
 
@@ -63,7 +67,7 @@ interceptor.response(({ query, result }) => {
   console.time("start");
 
   const matchRes = await metro.exec(matchQuery, {
-    // skip: 3,
+    // skip: 5,
     // limit: 3,
     // rawLimit: 2,
     // delete: ["u"],
@@ -74,8 +78,8 @@ interceptor.response(({ query, result }) => {
     // set: {
     //   u: assign({ name: "John 300" }),
     // },
-    delete: ["u"],
-    return: ["u", "r", "b"],
+    // delete: ["u"],
+    return: [[count("u"), "AS", "count"]],
   });
 
   console.timeEnd("start");

@@ -13,3 +13,10 @@ export type StringOrSchemaObject = "null" | string | SchemaObject;
 export interface Schema {
   [key: string]: StringOrSchemaObject;
 }
+
+export interface SchemaManager {
+  drop(): Promise<any>;
+  install(): Promise<any>;
+  deleteDB(): Promise<any>;
+  delete(model: string): void;
+}

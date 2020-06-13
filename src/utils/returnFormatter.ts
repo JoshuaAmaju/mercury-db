@@ -1,8 +1,15 @@
+import { ReturnOperator } from "../services/types";
+import { isFunc } from "./utils";
+import { Action } from "../services/match/types";
+
 function toParts(string: string) {
   return string.split("AS").map((s) => s.trim());
 }
 
-export default function returnFormatter(obj: object, returner: string[]) {
+export default function returnFormatter(
+  obj: object,
+  returner: ReturnOperator["return"]
+) {
   const results = {};
 
   /**
@@ -13,17 +20,31 @@ export default function returnFormatter(obj: object, returner: string[]) {
    * After grouping, it would look like this:
    * {name: ..., u: {...}} etc.
    */
+
   returner.forEach((key) => {
-    const [variable, as] = toParts(key);
-    const [main, target] = variable.split(".");
+    let as: string;
+    let variable = key as string | Action;
 
-    const object = obj[main];
+    if (Array.isArray(key)) {
+      variable = key[0] as string;
+      as = key[key.length - 1] as string;
+    }
 
-    if (target && Array.isArray(object)) {
-      const res = object.map((o) => o[target]);
-      results[as ?? variable] = res;
+    if (typeof variable === "string") {
+      const [value, alias] = variable.split("AS");
+      const [main, target] = value.trim().split(".");
+      if (alias) as = alias.trim();
+
+      const object = obj[main];
+
+      if (target && Array.isArray(object)) {
+        const res = object.map((o) => o[target]);
+        results[as ?? variable] = res;
+      } else {
+        results[as ?? variable] = target ? object[target] : object;
+      }
     } else {
-      results[as ?? variable] = target ? object[target] : object;
+      results[as ?? variable.string()] = variable.exec(obj);
     }
   });
 

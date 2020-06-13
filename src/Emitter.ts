@@ -1,17 +1,23 @@
-export type Listener<T = {}> = (arg: T) => T;
-
-type Listeners = Map<string, Map<number, Listener>>;
-
 export type Dispatcher = {
   type: string;
   [key: string]: any;
 };
 
-export default class Emitter<E extends Dispatcher = any> {
-  uuid = 0;
-  listeners: Listeners = new Map();
+export type ListenerProps<T> = {
+  [K in keyof T]: T[K];
+};
 
-  subscribe(event: E["type"], fn: Listener) {
+export type Listener<E extends Dispatcher> = (arg: ListenerProps<E>) => void;
+
+type ListenersOfType<E extends Dispatcher> = Map<number, Listener<E>>;
+
+type Listeners<E extends Dispatcher> = Map<string, ListenersOfType<E>>;
+
+export default class Emitter<E extends Dispatcher> {
+  private uuid = 0;
+  private listeners: Listeners<E> = new Map();
+
+  on(event: E["type"], fn: Listener<E>) {
     const id = ++this.uuid;
     const existing = this.listeners.get(event) ?? new Map();
     this.listeners.set(event, existing.set(id, fn));
@@ -22,7 +28,12 @@ export default class Emitter<E extends Dispatcher = any> {
     };
   }
 
-  clear(event: string) {
+  listenersCount(type?: E["type"]) {
+    if (type) return this.listeners.get(type).size;
+    return this.listeners.size;
+  }
+
+  clear(event: E["type"]) {
     const listeners = this.listeners.get(event);
     this.uuid -= listeners.size;
     listeners.clear();
@@ -34,17 +45,11 @@ export default class Emitter<E extends Dispatcher = any> {
   }
 
   send(e: E | E["type"]) {
-    let { type, ...args } = typeof e === "string" ? { type: e } : e;
-    const listeners = this.listeners.get(type);
+    let event = (typeof e === "string" ? { type: e } : e) as E;
+    const listeners = this.listeners.get(event.type);
 
     if (listeners) {
-      let res = args;
-
-      listeners.forEach((listener) => {
-        res = listener(res);
-      });
-
-      return res;
+      listeners.forEach((listener) => listener(event));
     }
   }
 }

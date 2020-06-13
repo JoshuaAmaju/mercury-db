@@ -22,11 +22,11 @@ export default class Interceptor {
   private emitter = new Emitter<Events>();
 
   request(fn: RequestListener) {
-    this.emitter.subscribe("request", fn);
+    this.emitter.on("request", fn);
   }
 
   response(fn: ResponseListener) {
-    this.emitter.subscribe("response", fn);
+    this.emitter.on("response", fn);
   }
 
   send(type: Events["type"], _query: Query<string>, result?: any) {
@@ -39,19 +39,19 @@ export default class Interceptor {
       [relationship.type]: relationship.props,
     };
 
-    if (type === "request") {
-      const res = this.emitter.send({ type, query }) as RequestProps;
-      return res?.query;
-    }
+    // if (type === "request") {
+    //   const res = this.emitter.send({ type, query }) as RequestProps;
+    //   return res?.query;
+    // }
 
-    if (type === "response") {
-      const res = this.emitter.send({
-        type,
-        query,
-        result,
-      }) as ResponseProps;
+    // if (type === "response") {
+    //   const res = this.emitter.send({
+    //     type,
+    //     query,
+    //     result,
+    //   }) as ResponseProps;
 
-      return res.result;
-    }
+    //   return res.result;
+    // }
   }
 }

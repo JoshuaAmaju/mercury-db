@@ -2,8 +2,8 @@ import Property from "./Property";
 import { Schema, StringOrSchemaObject } from "./types";
 
 const defaultPrimary = {
-  type: "uuid",
-  // hidden: true,
+  type: "string",
+  hidden: true,
   unique: true,
   indexed: true,
   primary: true,

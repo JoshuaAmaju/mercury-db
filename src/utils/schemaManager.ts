@@ -1,10 +1,10 @@
 import Model from "../model";
 import { toArray } from "./utils";
 
-export default function installSchema(
+export function installSchema(
   tx: IDBTransaction,
   models: Map<string, Model>
-) {
+): Promise<any> {
   const db = tx.db;
 
   return new Promise((resolve, reject) => {
@@ -49,5 +49,26 @@ export default function installSchema(
         store.transaction.oncomplete = resolve;
       }
     }
+  });
+}
+
+export function dropSchema(
+  db: IDBDatabase,
+  models: Map<string, Model>
+): Promise<void> {
+  return new Promise((resolve) => {
+    models.forEach((model) => {
+      db.deleteObjectStore(model.name);
+    });
+
+    resolve();
+  });
+}
+
+export function deleteDB(name: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(name);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.result);
   });
 }

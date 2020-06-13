@@ -3,7 +3,7 @@ export interface UpdateAndOrDelete {
   delete: string[];
   store: IDBObjectStore;
   ref: Map<string, object>;
-  set: Record<string, Assigner>;
+  set: Record<string, Action>;
   relationStore?: IDBObjectStore | IDBIndex;
 }
 
@@ -19,9 +19,17 @@ export type AssignerFunction = (context: object) => object;
 
 export type PropAssigner = Record<string, any | ((context: object) => any)>;
 
-export type AssignerHelper = AssignerFunction | PropAssigner;
+export type Assigner = AssignerFunction | PropAssigner;
 
-export type Assigner = {
-  type: "assign";
-  exec: AssignerFunction;
+export type ActionExecutor<T, K> = (context: T) => K;
+
+export enum Actions {
+  COUNT = "metro.count",
+  ASSIGN = "metro.assign",
+}
+
+export type Action<T = any, K = any> = {
+  type: Actions;
+  string?: () => string;
+  exec: ActionExecutor<T, K>;
 };
