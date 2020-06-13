@@ -7,7 +7,7 @@ export default function relate(
   db: IDBDatabase,
   query: Query<string, Properties>,
   operators?: ReturnOperator
-) {
+): Promise<Record<string, unknown>> {
   const returner = operators?.return;
   const { end, start, relationship } = query;
   const { type, props } = relationship;
@@ -54,7 +54,7 @@ export default function relate(
       };
     };
 
-    // tx.onerror = () => reject(tx.error);
-    // tx.onabort = () => reject(tx.error);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
   });
 }

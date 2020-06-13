@@ -1,16 +1,16 @@
+import Emitter, { Listener } from "./Emitter";
 import Model from "./model";
 import { Query } from "./query/types";
 import create from "./services/create";
 import match from "./services/match/match";
 import merge from "./services/merge";
 import relate from "./services/relate";
-import { QueryOperators } from "./services/types";
-import { StringOrSchemaObject, SchemaManager } from "./types";
+import { QueryOperators, Properties } from "./services/types";
+import { SchemaManager, StringOrSchemaObject } from "./types";
 import getDefaultValuesFor from "./utils/getDefaultValues";
 import relationSchema from "./utils/relationSchema";
-import { relationStoreName, toArray } from "./utils/utils";
-import Emitter, { Listener } from "./Emitter";
 import { deleteDB, dropSchema, installSchema } from "./utils/schemaManager";
+import { relationStoreName, toArray } from "./utils/utils";
 
 type BlockedEvent = {
   event: Event;
@@ -38,23 +38,23 @@ export default class Metro {
     this.model(relationStoreName, relationSchema);
   }
 
-  onClose(fn: VoidFunction) {
+  onClose(fn: VoidFunction): void {
     this.db.addEventListener("close", fn);
   }
 
-  onUpgrade(fn: Listener<UpgradeEvent>) {
+  onUpgrade(fn: Listener<UpgradeEvent>): void {
     this.emitter.on("upgrade", fn);
   }
 
-  onBlocked(fn: Listener<BlockedEvent>) {
+  onBlocked(fn: Listener<BlockedEvent>): void {
     this.emitter.on("blocked", fn);
   }
 
-  onVersionChange(fn: Listener<VersionChangeEvent>) {
+  onVersionChange(fn: Listener<VersionChangeEvent>): void {
     this.emitter.on("versionchange", fn);
   }
 
-  connect() {
+  connect(): Promise<void> {
     const { name, version, models } = this;
 
     return new Promise((resolve, reject) => {
@@ -62,7 +62,7 @@ export default class Metro {
 
       request.onerror = () => reject(request.error);
 
-      request.onupgradeneeded = async (e) => {
+      request.onupgradeneeded = () => {
         const tx = request.transaction;
         const db = tx.db;
 
@@ -71,12 +71,8 @@ export default class Metro {
           drop: () => dropSchema(db, models),
           install: () => installSchema(tx, models),
           delete: (model: string) => {
-            try {
-              db.deleteObjectStore(model);
-              this.models.delete(model);
-            } catch (error) {
-              throw error;
-            }
+            db.deleteObjectStore(model);
+            this.models.delete(model);
           },
         };
 
@@ -99,7 +95,7 @@ export default class Metro {
     });
   }
 
-  disconnect() {
+  disconnect(): Promise<unknown> {
     return new Promise((resolve, reject) => {
       this.db.close();
       this.db.onerror = reject;
@@ -107,7 +103,10 @@ export default class Metro {
     });
   }
 
-  model<T>(name: string, schema?: Record<keyof T, StringOrSchemaObject>) {
+  model<T>(
+    name: string,
+    schema?: Record<keyof T, StringOrSchemaObject>
+  ): Model {
     if (schema instanceof Object) {
       const model = new Model(name, schema);
       this.models.set(name, model);
@@ -131,11 +130,11 @@ export default class Metro {
     return this.models.get(name);
   }
 
-  exec(query: Query<string>, operators?: QueryOperators) {
+  exec(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
     return this.execute(query, operators);
   }
 
-  execute(query: Query<string>, operators?: QueryOperators) {
+  execute(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
     switch (query.type) {
       case "CREATE": {
         query = this.fillDefaults(query);
@@ -151,14 +150,14 @@ export default class Metro {
       }
 
       case "RELATE": {
-        return relate(this.db, query as any, operators);
+        return relate(this.db, query as Query<string, Properties>, operators);
       }
     }
   }
 
-  fillDefaults(query: Query<string>) {
+  fillDefaults<T extends Query<string>>(query: T): T {
     let shouldThrow = false;
-    let { end, start } = query;
+    const { end, start } = query;
     const newQuery = { ...query };
     const _start = this.model(start.label);
     const _end = end.label && this.model(end.label);
@@ -182,7 +181,10 @@ export default class Metro {
     return newQuery;
   }
 
-  batch(queries: Query<string>[], operators?: QueryOperators) {
+  batch(
+    queries: Query<string>[],
+    operators?: QueryOperators
+  ): Promise<unknown[]> {
     return Promise.all(queries.map((query) => this.exec(query, operators)));
   }
 }

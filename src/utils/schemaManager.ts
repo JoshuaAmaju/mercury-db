@@ -4,7 +4,7 @@ import { toArray } from "./utils";
 export function installSchema(
   tx: IDBTransaction,
   models: Map<string, Model>
-): Promise<any> {
+): Promise<unknown> {
   const db = tx.db;
 
   return new Promise((resolve, reject) => {
@@ -65,7 +65,7 @@ export function dropSchema(
   });
 }
 
-export function deleteDB(name: string): Promise<any> {
+export function deleteDB(name: string): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.deleteDatabase(name);
     request.onsuccess = () => resolve(request.result);

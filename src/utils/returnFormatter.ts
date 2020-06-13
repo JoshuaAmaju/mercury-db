@@ -1,15 +1,14 @@
-import { ReturnOperator } from "../services/types";
-import { isFunc } from "./utils";
 import { Action } from "../services/match/types";
+import { ReturnOperator } from "../services/types";
 
 function toParts(string: string) {
   return string.split("AS").map((s) => s.trim());
 }
 
-export default function returnFormatter(
-  obj: object,
+export default function returnFormatter<T extends Record<string, unknown>>(
+  obj: T,
   returner: ReturnOperator["return"]
-) {
+): T {
   const results = {};
 
   /**
@@ -31,9 +30,9 @@ export default function returnFormatter(
     }
 
     if (typeof variable === "string") {
-      const [value, alias] = variable.split("AS");
-      const [main, target] = value.trim().split(".");
-      if (alias) as = alias.trim();
+      const [value, alias] = toParts(variable);
+      const [main, target] = value.split(".");
+      if (alias) as = alias;
 
       const object = obj[main];
 
@@ -48,5 +47,5 @@ export default function returnFormatter(
     }
   });
 
-  return results;
+  return results as T;
 }

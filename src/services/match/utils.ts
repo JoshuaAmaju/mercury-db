@@ -1,9 +1,10 @@
 import { relationStoreName } from "./../../utils/utils";
 import { toWhere, getProps } from "../../utils/utils";
 import { UpdateAndOrDelete, OpenCursor } from "./types";
+import { MetroObject } from "../types";
 
 // Whether the cursor should continue or stop.
-export function shouldContinue(step: number, limit: number) {
+export function shouldContinue(step: number, limit: number): boolean {
   if (limit) return step < limit ? true : false;
   return true;
 }
@@ -16,7 +17,10 @@ export function shouldContinue(step: number, limit: number) {
  * present in A object to those in B object, while ignoring keys
  * not present in A but that are present in B.
  */
-export function isEqual(props: object | null, target: object) {
+export function isEqual(
+  props: Record<string, unknown> | null,
+  target: Record<string, unknown>
+): boolean {
   return props ? toWhere(props)(target) : true;
 }
 
@@ -32,7 +36,7 @@ export async function updateAndOrDelete({
   label,
   relationStore,
   delete: deleter,
-}: UpdateAndOrDelete) {
+}: UpdateAndOrDelete): Promise<void> {
   const deletedNodes = new Map();
 
   await openCursor({
@@ -40,7 +44,7 @@ export async function updateAndOrDelete({
     async onNext(cursor) {
       const { value } = cursor;
 
-      let props = ref.get(value._id) ?? {};
+      const props = ref.get(value._id) ?? {};
 
       if (isEqual(props, value)) {
         if (set) {
@@ -94,14 +98,17 @@ export async function updateAndOrDelete({
  * Searchs for any key that is indexed in the
  * database, and return the key and value.
  */
-export function indexKeyValue(store: IDBObjectStore, object: object = {}) {
-  let value: any;
+export function indexKeyValue(
+  store: IDBObjectStore,
+  object: MetroObject = {}
+): [string, unknown] {
   let key: string;
+  let value: unknown;
   const indexes = store.indexNames;
 
   for (const k in object) {
     if (indexes.contains(k)) {
-      [key, value] = [key, object[k]];
+      [key, value] = [k, object[k]];
       break;
     }
   }
@@ -115,7 +122,10 @@ export function indexKeyValue(store: IDBObjectStore, object: object = {}) {
  * Returns the object store if no indexed value is present in
  * the search object.
  */
-export function indexStore(store: IDBObjectStore, props?: object) {
+export function indexStore(
+  store: IDBObjectStore,
+  props?: MetroObject
+): { store: IDBIndex | IDBObjectStore; keyRange: IDBKeyRange } {
   let keyRange: IDBKeyRange;
   const [key, value] = indexKeyValue(store, props);
   let indexStore = store as IDBIndex | IDBObjectStore;
@@ -143,7 +153,7 @@ export function openCursor({
   store,
   onNext,
   keyRange,
-}: OpenCursor) {
+}: OpenCursor): Promise<void> {
   return new Promise((resolve, reject) => {
     let count = 0;
     const req = store.openCursor(keyRange);

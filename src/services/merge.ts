@@ -3,9 +3,13 @@ import { Query } from "../query/types";
 import { getStores, has } from "../utils/utils";
 import create from "./create";
 import match from "./match/match";
-import { MatchOperators, MergeOperators } from "./types";
+import { MatchOperators, MergeOperators, Properties } from "./types";
 
-function get(tx: IDBTransaction, name: string, key: string): Promise<object> {
+function get(
+  tx: IDBTransaction,
+  name: string,
+  key: string | number
+): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
     const store = tx.objectStore(name);
     const req = store.get(key);
@@ -18,7 +22,7 @@ export default async function merge(
   metro: Metro,
   query: Query<string>,
   operators: MergeOperators = {}
-) {
+): Promise<Record<string, unknown> | Record<string, unknown>[]> {
   const db = metro.db;
   const returner = operators.return;
   const { onMatch, onCreate } = operators;
@@ -34,9 +38,9 @@ export default async function merge(
 
   if (matchRes && matchRes.length > 0) return matchRes;
 
-  const endProps = end.props as any;
-  const startProps = start.props as any;
-  const relationProps = relationship.props as any;
+  const endProps = end.props as Properties;
+  const startProps = start.props as Properties;
+  const relationProps = relationship.props as Properties;
 
   const props = {
     [end.as]: endProps,

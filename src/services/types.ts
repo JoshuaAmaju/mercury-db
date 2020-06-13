@@ -1,6 +1,7 @@
 import { Action } from "./match/types";
+import { MetroObject } from "../types";
 
-export type WhereHandler = (...args: object[]) => boolean;
+export type WhereHandler = (...args: Record<string, unknown>[]) => boolean;
 
 export type ReturnType = string | Action;
 
@@ -21,7 +22,7 @@ export type MatchOperators = ReturnOperator & {
   rawLimit?: number;
   delete?: string[];
   where?: WhereHandler;
-  set?: Record<string, Action>;
+  set?: Record<string, Action<MetroObject, MetroObject>>;
   orderBy?: {
     type?: "ASC" | "DESC";
     key: string | string[];
@@ -31,15 +32,15 @@ export type MatchOperators = ReturnOperator & {
 export type QueryOperators = CreateOperators & MatchOperators & MergeOperators;
 
 export interface Relationship {
-  end?: any;
-  start: any;
   to: string;
   from: string;
   type: string;
-  [key: string]: any;
+  end?: unknown;
+  start: unknown;
+  [key: string]: unknown;
 }
 
 export interface Properties {
-  _id: number;
-  [key: string]: any;
+  _id: string | number;
+  [key: string]: unknown;
 }

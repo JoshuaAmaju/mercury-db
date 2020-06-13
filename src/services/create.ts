@@ -1,8 +1,8 @@
-import { CreateOperators, Relationship, Properties } from "./types";
-import { isEmptyObj, getStores } from "../utils/utils";
 import { Query } from "../query/types";
-import relate from "./relate";
 import returnFormatter from "../utils/returnFormatter";
+import { getStores, isEmptyObj } from "../utils/utils";
+import relate from "./relate";
+import { CreateOperators, Properties } from "./types";
 
 function relationQuery(q: Query<string>, start: number, end: number) {
   const query = {
@@ -24,7 +24,7 @@ export default function create(
   db: IDBDatabase,
   query: Query<string>,
   operators?: CreateOperators
-) {
+): Promise<Record<string, unknown>[] | Record<string, unknown>> {
   const returner = operators?.return;
   const { end, start, relationship } = query;
 
@@ -35,6 +35,8 @@ export default function create(
     let endId;
     let startId;
     let relation;
+
+    let txError: Error;
 
     const hasEnd = end && end.props && !isEmptyObj(end.props);
 
@@ -48,8 +50,8 @@ export default function create(
       endReq.onsuccess = () => (endId = endReq.result);
     }
 
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error);
+    tx.onerror = () => reject(txError ?? tx.error);
+    tx.onabort = () => reject(txError ?? tx.error);
 
     tx.oncomplete = async () => {
       if (relationship.type) {
@@ -62,7 +64,8 @@ export default function create(
 
           relation = relationRes[relationship.as];
         } catch (error) {
-          throw error;
+          txError = error;
+          tx.abort();
         }
       }
 
@@ -92,6 +95,7 @@ export default function create(
       if (!relationship.type) delete returnValues[relationship?.as];
 
       const results = returnFormatter(returnValues, returner);
+
       resolve(results);
     };
   });

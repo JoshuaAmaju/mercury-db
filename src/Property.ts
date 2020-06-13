@@ -6,31 +6,31 @@ export default class Property {
     this.schema = toSchemaObj(schema);
   }
 
-  getSchema() {
+  getSchema(): SchemaObject {
     return this.schema as SchemaObject;
   }
 
-  getType() {
+  getType(): string {
     return this.getSchema().type;
   }
 
-  isPrimary() {
+  isPrimary(): boolean {
     return this.getSchema().primary ?? false;
   }
 
-  isUnique() {
+  isUnique(): boolean {
     return this.getSchema().unique ?? false;
   }
 
-  isRequired() {
+  isRequired(): boolean {
     return this.getSchema().required ?? false;
   }
 
-  isIndexed() {
+  isIndexed(): boolean {
     return this.getSchema().indexed ?? false;
   }
 
-  isNullType() {
+  isNullType(): boolean {
     return this.getType() === "null";
   }
 }

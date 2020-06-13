@@ -1,3 +1,5 @@
+export type MetroObject = Record<string, unknown>;
+
 export interface SchemaObject {
   hidden?: boolean;
   unique?: boolean;
@@ -5,7 +7,7 @@ export interface SchemaObject {
   indexed?: boolean;
   required?: boolean;
   type: "uuid" | string;
-  default?: any | (() => any);
+  default?: unknown | (() => unknown);
 }
 
 export type StringOrSchemaObject = "null" | string | SchemaObject;
@@ -15,8 +17,8 @@ export interface Schema {
 }
 
 export interface SchemaManager {
-  drop(): Promise<any>;
-  install(): Promise<any>;
-  deleteDB(): Promise<any>;
+  drop(): Promise<unknown>;
+  install(): Promise<unknown>;
   delete(model: string): void;
+  deleteDB(): Promise<unknown>;
 }

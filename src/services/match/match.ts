@@ -1,3 +1,4 @@
+import { Properties } from "./../types";
 import { Query } from "../../query/types";
 import { sortAscendingBy, sortDescendingBy } from "../../utils/matchSorter";
 import returnFormatter from "../../utils/returnFormatter";
@@ -14,7 +15,7 @@ export default async function match(
   db: IDBDatabase,
   query: Query<string>,
   operators: MatchOperators = {}
-) {
+): Promise<Record<string, unknown>[]> {
   const {
     set,
     skip,
@@ -47,13 +48,21 @@ export default async function match(
 
   // Evaluates the where query caluse, if not
   // provided, then all matches are true.
-  const whereEval = (...args: any[]) => {
+  const whereEval = (...args: Record<string, unknown>[]) => {
     return where ? where(...args) : true;
   };
 
   let results = [];
   const startStore = tx.objectStore(start.label);
   const { store, keyRange } = indexStore(startStore, startProps);
+
+  tx.onerror = () => {
+    throw tx.error;
+  };
+
+  tx.onabort = () => {
+    throw tx.error;
+  };
 
   const relationStore = tx.objectStore(relationStoreName).index("type");
 
@@ -101,7 +110,7 @@ export default async function match(
         const props = getProps(value) ?? {};
 
         if (isEqual(relationProps, props)) {
-          let result = {};
+          const result = {};
           const startNode = foundStarts.get(value.start);
 
           if (startNode) {
@@ -110,15 +119,16 @@ export default async function match(
             const matches = whereEval(startNode, relation, endNode);
 
             if (matches) {
-              let innerMatch = endProps
+              const innerMatch = endProps
                 ? value.end &&
                   endNode &&
                   value.start === startNode._id &&
-                  value.end === (endNode as any)._id
+                  value.end === (endNode as Properties)._id
                 : true;
 
               if (innerMatch) {
                 const { as } = relationship;
+
                 if (setOrDelete(relationship.as)) {
                   if (set) {
                     const setter = set[as].exec(props);

@@ -1,27 +1,27 @@
+import { Relationship, WhereHandler } from "../services/types";
 import { SchemaObject } from "../types";
-import { WhereHandler, Relationship } from "../services/types";
 
 export const relationStoreName = "relationships";
 
 export const has = Object.prototype.hasOwnProperty;
 
-export function isFunc(value: any) {
+export function isFunc(value: unknown): boolean {
   return typeof value === "function";
 }
 
-export function length(obj: object) {
+export function length(obj: Record<string, unknown>): number {
   return Object.keys(obj).length;
 }
 
-export function isEmptyObj(obj: object) {
+export function isEmptyObj(obj: Record<string, unknown>): boolean {
   return length(obj) <= 0;
 }
 
-export function devUuid() {
+export function devUuid(): string {
   return Math.random().toString(16).substr(2);
 }
 
-export function toArray<T>(obj: IterableIterator<T>) {
+export function toArray<T>(obj: IterableIterator<T>): T[] {
   return Array.from(obj);
 }
 
@@ -29,13 +29,13 @@ export function toSchemaObj(schema: string | SchemaObject): SchemaObject {
   return typeof schema === "string" ? { type: schema } : schema;
 }
 
-export function getStores(...names: string[]) {
+export function getStores(...names: string[]): string[] {
   return names.filter((name) => name);
 }
 
-export function toWhere(props: object): WhereHandler {
+export function toWhere(props: Record<string, unknown>): WhereHandler {
   return (args) => {
-    let matches = new Set();
+    const matches = new Set();
 
     Object.keys(props).forEach((prop) => {
       matches.add(props[prop] === args[prop]);
@@ -45,7 +45,8 @@ export function toWhere(props: object): WhereHandler {
   };
 }
 
-export function getProps(relation: Relationship) {
+export function getProps(relation: Relationship): Record<string, unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { _id, to, end, start, from, type, ...props } = relation;
   return props;
 }
