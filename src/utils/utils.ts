@@ -5,7 +5,9 @@ export const relationStoreName = "relationships";
 
 export const has = Object.prototype.hasOwnProperty;
 
-export function isFunc(value: unknown): boolean {
+type MetroFunction = (...args: unknown[]) => unknown;
+
+export function isFunc(value: unknown): value is MetroFunction {
   return typeof value === "function";
 }
 
@@ -15,10 +17,6 @@ export function length(obj: Record<string, unknown>): number {
 
 export function isEmptyObj(obj: Record<string, unknown>): boolean {
   return length(obj) <= 0;
-}
-
-export function devUuid(): string {
-  return Math.random().toString(16).substr(2);
 }
 
 export function toArray<T>(obj: IterableIterator<T>): T[] {

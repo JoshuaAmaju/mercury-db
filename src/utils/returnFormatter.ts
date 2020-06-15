@@ -1,19 +1,18 @@
-import { Action } from "../services/match/types";
-import { ReturnOperator } from "../services/types";
+import { ReturnOperator, Properties } from "../services/types";
+import { Action } from "../query/types";
 
 function toParts(string: string) {
   return string.split("AS").map((s) => s.trim());
 }
 
-export default function returnFormatter<T extends Record<string, unknown>>(
+export default function returnFormatter<T extends Record<string, Properties>>(
   obj: T,
   returner: ReturnOperator["return"]
 ): T {
   const results = {};
 
   /**
-   * Gather the return values by
-   * their key or alias. e.g
+   * Gather the return values by their key or alias. e.g
    * initial return object would contain
    * {u: {...}, b: {...}, r: {...}} before grouping.
    * After grouping, it would look like this:

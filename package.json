@@ -4,6 +4,7 @@
   "description": "Graph database backed by IndexedDB",
   "main": "src/index.js",
   "scripts": {
+    "start": "parcel example/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -18,5 +19,8 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
     "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "uuid": "^8.1.0"
   }
 }

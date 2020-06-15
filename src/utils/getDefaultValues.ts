@@ -1,6 +1,5 @@
-import { SchemaObject } from "./../types";
 import Model from "../model";
-import { toSchemaObj, devUuid, isFunc } from "./utils";
+import { toSchemaObj, isFunc } from "./utils";
 
 export default function getDefaultValuesFor<T extends Record<string, unknown>>(
   model: Model,
@@ -13,14 +12,11 @@ export default function getDefaultValuesFor<T extends Record<string, unknown>>(
     const value = props[key];
     const _schema = toSchemaObj(schema[key]);
 
-    const { type, hidden } = _schema;
+    const { hidden } = _schema;
     let defaultValue = _schema.default;
 
-    if (type === "uuid") defaultValue = devUuid;
-
     if (defaultValue) {
-      defaultValue =
-        typeof defaultValue === "function" ? defaultValue() : defaultValue;
+      defaultValue = isFunc(defaultValue) ? defaultValue() : defaultValue;
     }
 
     if (!hidden) output[key] = value ?? defaultValue;

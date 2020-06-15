@@ -7,7 +7,7 @@ export default function relate(
   db: IDBDatabase,
   query: Query<string, Properties>,
   operators?: ReturnOperator
-): Promise<Record<string, unknown>> {
+): Promise<Record<string, Properties>> {
   const returner = operators?.return;
   const { end, start, relationship } = query;
   const { type, props } = relationship;
@@ -48,7 +48,7 @@ export default function relate(
             _id: res,
             ...props,
           },
-        };
+        } as Record<string, Properties>;
 
         resolve(returnFormatter(obj, returner));
       };

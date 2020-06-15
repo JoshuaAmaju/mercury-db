@@ -1,12 +1,12 @@
-import { Assigner, Action, Actions } from "./types";
-import { isFunc } from "../../utils/utils";
+import { Action, Actions, Assigner } from "../services/match/types";
+import { isFunc } from "../utils/utils";
 
 /**
  * Assigns new values/updates to the object found
  * in the database during a match query.
  */
 export function assign(assigner: Assigner): Action {
-  const exec = (obj: object) => {
+  const exec = (obj: Record<string, unknown>) => {
     if (typeof assigner === "function") return assigner(obj);
 
     const output = { ...obj };
@@ -30,11 +30,11 @@ export function count(label: string, distinct = false): Action {
   const countedUnique = new Set();
   const [main, target] = label.split(".");
 
-  const exec = (args: object) => {
+  const exec = (args: Record<string, unknown>) => {
     const obj = args[main];
 
     if (obj) {
-      let value: any;
+      let value: unknown;
 
       if (!target) {
         value = obj;
@@ -61,7 +61,7 @@ export function count(label: string, distinct = false): Action {
 export function keys(label: string): Action {
   const [main, target] = label.split(".");
 
-  const exec = (args: object) => {
+  const exec = (args: Record<string, unknown>) => {
     let obj = args[main];
     if (target) obj = obj[target];
     return Object.keys(obj);
@@ -77,7 +77,7 @@ export function keys(label: string): Action {
 export function values(label: string): Action {
   const [main, target] = label.split(".");
 
-  const exec = (args: object) => {
+  const exec = (args: Record<string, unknown>) => {
     let obj = args[main];
     if (target) obj = obj[target];
     return Object.values(obj);

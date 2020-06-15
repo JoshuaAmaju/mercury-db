@@ -4,7 +4,7 @@ import { getStores, isEmptyObj } from "../utils/utils";
 import relate from "./relate";
 import { CreateOperators, Properties } from "./types";
 
-function relationQuery(q: Query<string>, start: number, end: number) {
+function relationQuery(q: Query<string>, start: IDBValidKey, end: IDBValidKey) {
   const query = {
     start: {
       ...q.start,
@@ -24,7 +24,7 @@ export default function create(
   db: IDBDatabase,
   query: Query<string>,
   operators?: CreateOperators
-): Promise<Record<string, unknown>[] | Record<string, unknown>> {
+): Promise<Record<string, Properties>[] | Record<string, Properties>> {
   const returner = operators?.return;
   const { end, start, relationship } = query;
 
@@ -32,9 +32,9 @@ export default function create(
   const tx = db.transaction(stores, "readwrite");
 
   return new Promise((resolve, reject) => {
-    let endId;
-    let startId;
-    let relation;
+    let endId: IDBValidKey;
+    let startId: IDBValidKey;
+    let relation: Properties;
 
     let txError: Error;
 
@@ -89,7 +89,7 @@ export default function create(
           type: relation?.type,
           ...relationship.props,
         },
-      };
+      } as Record<string, Properties>;
 
       if (!hasEnd) delete returnValues[end?.as];
       if (!relationship.type) delete returnValues[relationship?.as];

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>MetroDB</title>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h2>Tasks</h2>
+        <div class="actions">
+          <div class="categories">
+            <div class="category">
+              <input type="radio" name="category" id="all" checked />
+              <label for="all">All</label>
+            </div>
+            <div class="category">
+              <input type="radio" name="category" id="completed" />
+              <label for="completed">Completed</label>
+            </div>
+            <div class="category">
+              <input type="radio" name="category" id="uncompleted" />
+              <label for="uncompleted">Uncompleted</label>
+            </div>
+          </div>
+        </div>
+      </header>
+      <ul class="todos"></ul>
+      <div class="loader flex center-parent">
+        <h3>loading</h3>
+      </div>
+      <div class="empty flex fill-parent center-parent">
+        <h1>No tasks yet</h1>
+      </div>
+      <button class="fab">create task</button>
+
+      <div class="modal" tabindex="-1">
+        <form>
+          <input type="text" placeholder="Enter task" />
+        </form>
+        <button class="close-form">close</button>
+      </div>
+    </div>
+    <script src="index.ts"></script>
+  </body>
+</html>

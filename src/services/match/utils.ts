@@ -1,7 +1,7 @@
 import { relationStoreName } from "./../../utils/utils";
 import { toWhere, getProps } from "../../utils/utils";
 import { UpdateAndOrDelete, OpenCursor } from "./types";
-import { MetroObject } from "../types";
+import { MetroObject } from "../../types";
 
 // Whether the cursor should continue or stop.
 export function shouldContinue(step: number, limit: number): boolean {

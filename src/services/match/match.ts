@@ -15,7 +15,7 @@ export default async function match(
   db: IDBDatabase,
   query: Query<string>,
   operators: MatchOperators = {}
-): Promise<Record<string, unknown>[]> {
+): Promise<Record<string, Properties>[]> {
   const {
     set,
     skip,

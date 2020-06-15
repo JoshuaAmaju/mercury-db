@@ -68,7 +68,7 @@ export default class Metro {
 
         const schema: SchemaManager = {
           deleteDB: () => deleteDB(name),
-          drop: () => dropSchema(db, models),
+          drop: () => dropSchema(tx, models),
           install: () => installSchema(tx, models),
           delete: (model: string) => {
             db.deleteObjectStore(model);
@@ -108,7 +108,7 @@ export default class Metro {
     schema?: Record<keyof T, StringOrSchemaObject>
   ): Model {
     if (schema instanceof Object) {
-      const model = new Model(name, schema);
+      const model = new Model(this, name, schema);
       this.models.set(name, model);
     }
 

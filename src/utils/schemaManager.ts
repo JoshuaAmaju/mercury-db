@@ -53,12 +53,15 @@ export function installSchema(
 }
 
 export function dropSchema(
-  db: IDBDatabase,
+  tx: IDBTransaction,
   models: Map<string, Model>
 ): Promise<void> {
   return new Promise((resolve) => {
     models.forEach((model) => {
-      db.deleteObjectStore(model.name);
+      const { name } = model;
+      const indexes = model.indexed;
+      const store = tx.objectStore(name);
+      for (const index of indexes) store.deleteIndex(index);
     });
 
     resolve();
@@ -67,8 +70,8 @@ export function dropSchema(
 
 export function deleteDB(name: string): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.deleteDatabase(name);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.result);
+    const req = indexedDB.deleteDatabase(name);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.result);
   });
 }

@@ -76,6 +76,7 @@ export default async function merge(
     newEndProps = await get(tx, end.label, endProps._id);
   }
 
+  // Assign default values to the query props object
   query.relationship.props = props[relationship.as];
   query.end.props = { ...newEndProps, ...props[end.as] };
   query.start.props = { ...newStartProps, ...props[start.as] };
