@@ -1,5 +1,5 @@
-import { Action } from "./match/types";
 import { MetroObject } from "../types";
+import { Action } from "../query/types";
 
 export type WhereHandler = (...args: Record<string, unknown>[]) => boolean;
 

@@ -1,5 +1,4 @@
 import Model from "../model";
-import { toArray } from "./utils";
 
 export function installSchema(
   tx: IDBTransaction,
@@ -8,7 +7,7 @@ export function installSchema(
   const db = tx.db;
 
   return new Promise((resolve, reject) => {
-    const modelArray = toArray(models.entries());
+    const modelArray = [...models.entries()];
 
     for (let i = 0; i < modelArray.length; i++) {
       const [, model] = modelArray[i];

@@ -3,6 +3,7 @@ import returnFormatter from "../utils/returnFormatter";
 import { getStores, isEmptyObj } from "../utils/utils";
 import relate from "./relate";
 import { CreateOperators, Properties } from "./types";
+import match from "./match/match";
 
 function relationQuery(q: Query<string>, start: IDBValidKey, end: IDBValidKey) {
   const query = {
@@ -24,7 +25,7 @@ export default function create(
   db: IDBDatabase,
   query: Query<string>,
   operators?: CreateOperators
-): Promise<Record<string, Properties>[] | Record<string, Properties>> {
+): Promise<ReturnType<typeof match> | Record<string, Properties>> {
   const returner = operators?.return;
   const { end, start, relationship } = query;
 
@@ -50,6 +51,12 @@ export default function create(
       endReq.onsuccess = () => (endId = endReq.result);
     }
 
+    /**
+     * This is just to provide the user with
+     * a proper error message if any occurs during
+     * the process of creating the relationship.
+     * See below for more explanation.
+     */
     tx.onerror = () => reject(txError ?? tx.error);
     tx.onabort = () => reject(txError ?? tx.error);
 
@@ -64,6 +71,18 @@ export default function create(
 
           relation = relationRes[relationship.as];
         } catch (error) {
+          /**
+           * This references the comment above, that
+           * also references this one.
+           *
+           * Abort the transaction that creates the
+           * start and end node if an error occurs while
+           * trying to create the relationship.
+           *
+           * Aborting the operation does not provide the user
+           * with an error, so we have to grab a reference to
+           * the error object, for proper handling.
+           */
           txError = error;
           tx.abort();
         }

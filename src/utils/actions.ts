@@ -1,5 +1,4 @@
-import { Action, Actions } from "../services/match/types";
-import { toArray } from "./utils";
+import { Action, Actions } from "../query/types";
 
 function getValue(arg: Record<string, unknown>, main: string, target: string) {
   let value: unknown;
@@ -19,7 +18,7 @@ function getValue(arg: Record<string, unknown>, main: string, target: string) {
 
 export function count(label: string, distinct = false): Action {
   const counted = [];
-  const countedUnique = new Set();
+  const uniqueCounted = new Set();
   const [main, target] = label.split(".");
 
   const exec = (args: Record<string, unknown>[]) => {
@@ -28,11 +27,11 @@ export function count(label: string, distinct = false): Action {
 
       if (value) {
         counted.push(value);
-        countedUnique.add(value);
+        uniqueCounted.add(value);
       }
     });
 
-    return distinct ? countedUnique.size : counted.length;
+    return distinct ? uniqueCounted.size : counted.length;
   };
 
   return {
@@ -43,8 +42,8 @@ export function count(label: string, distinct = false): Action {
 }
 
 export function sum(label: string, distinct = false): Action {
-  const sumed = [];
-  const sumedUnique = new Set();
+  const sum = [];
+  const uniqueSum = new Set();
   const [main, target] = label.split(".");
 
   const exec = (args: Record<string, unknown>[]) => {
@@ -52,12 +51,12 @@ export function sum(label: string, distinct = false): Action {
       const value = getValue(arg, main, target);
 
       if (value) {
-        sumed.push(value);
-        sumedUnique.add(value);
+        sum.push(value);
+        uniqueSum.add(value);
       }
     });
 
-    const arr = distinct ? toArray(sumedUnique.values()) : sumed;
+    const arr = distinct ? [...uniqueSum.values()] : sum;
 
     return arr.reduce((prev, curr) => prev + curr);
   };

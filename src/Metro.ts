@@ -5,7 +5,7 @@ import create from "./services/create";
 import match from "./services/match/match";
 import merge from "./services/merge";
 import relate from "./services/relate";
-import { QueryOperators, Properties } from "./services/types";
+import { Properties, QueryOperators } from "./services/types";
 import { SchemaManager, StringOrSchemaObject } from "./types";
 import getDefaultValuesFor from "./utils/getDefaultValues";
 import relationSchema from "./utils/relationSchema";
@@ -156,26 +156,20 @@ export default class Metro {
   }
 
   fillDefaults<T extends Query<string>>(query: T): T {
-    let shouldThrow = false;
     const { end, start } = query;
+
+    if (!start.props) {
+      throw new Error("Query `Properties` must be an object.");
+    }
+
     const newQuery = { ...query };
     const _start = this.model(start.label);
     const _end = end.label && this.model(end.label);
 
-    if (!start.props) shouldThrow = true;
-
     newQuery.start.props = getDefaultValuesFor(_start, start.props);
 
-    if (end) {
-      if (end.props) {
-        newQuery.end.props = getDefaultValuesFor(_end, end.props);
-      } else {
-        // shouldThrow = true;
-      }
-    }
-
-    if (shouldThrow) {
-      throw new Error("Query `Properties` must be an object.");
+    if (end?.props) {
+      newQuery.end.props = getDefaultValuesFor(_end, end.props);
     }
 
     return newQuery;

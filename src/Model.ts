@@ -1,6 +1,6 @@
 import Property from "./Property";
 import { Schema, StringOrSchemaObject } from "./types";
-import Metro from ".";
+import Metro from "./metro";
 
 const defaultPrimary = {
   type: "string",
@@ -21,6 +21,8 @@ export default class Model<T = unknown> {
     public name: string,
     public schema: Schema
   ) {
+    // Assign the default internal primary
+    // key identifier to the schema.
     this.schema = {
       ...schema,
       [this.primaryKey]: defaultPrimary,
