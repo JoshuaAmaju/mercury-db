@@ -34,3 +34,25 @@ export function getProps(relation: Relationship): Record<string, unknown> {
   const { _id, to, end, start, from, type, ...props } = relation;
   return props;
 }
+
+/**
+ * Searchs for any key that is indexed in the
+ * database, and return the key and value.
+ */
+export function indexedKeyValue(
+  store: IDBObjectStore,
+  object: WeBaseRecord = {}
+): [string, unknown] {
+  let key: string;
+  let value: unknown;
+  const indexes = store.indexNames;
+
+  for (const k in object) {
+    if (indexes.contains(k)) {
+      [key, value] = [k, object[k]];
+      break;
+    }
+  }
+
+  return [key, value];
+}

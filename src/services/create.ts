@@ -110,9 +110,6 @@ export default function create(
         },
       } as Record<string, Properties>;
 
-      if (!hasEnd) delete returnValues[end?.as];
-      if (!relationship.type) delete returnValues[relationship?.as];
-
       const results = returnFormatter(returnValues, returner);
 
       resolve(results);

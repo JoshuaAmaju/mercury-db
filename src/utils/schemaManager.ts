@@ -6,10 +6,8 @@ export function installSchema(
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const db = tx.db;
-    const modelArray = [...models.entries()];
 
-    for (let i = 0; i < modelArray.length; i++) {
-      const [, model] = modelArray[i];
+    models.forEach((model) => {
       const properties = model.properties;
 
       const name = model.name;
@@ -41,12 +39,10 @@ export function installSchema(
           }
         }
       });
+    });
 
-      if (i === modelArray.length) {
-        store.transaction.onerror = reject;
-        store.transaction.oncomplete = resolve;
-      }
-    }
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
   });
 }
 

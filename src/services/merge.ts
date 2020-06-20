@@ -1,5 +1,6 @@
 import { Query } from "../query/types";
-import { getStores, has } from "../utils/utils";
+import { getStores, indexedKeyValue } from "../utils/utils";
+import { WeBaseRecord } from "./../types";
 import create from "./create";
 import match from "./match/match";
 import { MatchOperators, MergeOperators, Properties } from "./types";
@@ -21,7 +22,7 @@ export default async function merge(
   db: IDBDatabase,
   query: Query<string>,
   operators: MergeOperators = {}
-): Promise<Record<string, unknown> | Record<string, unknown>[]> {
+): Promise<WeBaseRecord | WeBaseRecord[]> {
   const returner = operators.return;
   const { onMatch, onCreate } = operators;
   const { end, start, relationship } = query;
@@ -56,28 +57,32 @@ export default async function merge(
   const stores = getStores(start.label, end.label);
   const tx = db.transaction(stores);
 
-  let newEndProps = {};
-  let newStartProps = {};
+  const endStore = tx.objectStore(end.label);
+  const startStore = tx.objectStore(start.label);
+
+  const [, eValue] = indexedKeyValue(endStore, endProps);
+  const [, sValue] = indexedKeyValue(startStore, startProps);
 
   /**
-   * If the only item in the object is the internal
-   * ID (_id), there's no point creating a node that already exist,
+   * Uses any indexed value to get already inserted values in the
+   * database. There's no point creating a node that already exist,
    * instead, find the node and merge its values with the new
    * values to avoid empty insertions or overriding existing data
    * in the database with object fields set to undefined.
    */
-  if (has.call(startProps, "_id")) {
-    newStartProps = await get(tx, start.label, startProps._id);
-  }
-
-  if (has.call(endProps, "_id")) {
-    newEndProps = await get(tx, end.label, endProps._id);
-  }
+  const newEndProps = await get(tx, end.label, eValue as string);
+  const newStartProps = await get(tx, start.label, sValue as string);
 
   // Assign default values to the query props object
   query.relationship.props = props[relationship.as];
-  query.end.props = { ...newEndProps, ...props[end.as] };
-  query.start.props = { ...newStartProps, ...props[start.as] };
+  query.end.props = {
+    ...newEndProps,
+    ...props[end.as],
+  };
+  query.start.props = {
+    ...newStartProps,
+    ...props[start.as],
+  };
 
   const createRes = await create(db, query, newOperators);
 

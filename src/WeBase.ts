@@ -145,6 +145,12 @@ export default class WeBase {
   }
 
   exec(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
+    const model = this.models.get(relationStoreName);
+
+    if (this.models.size === 1 && model.name === relationStoreName) {
+      throw new Error("No models have been defined.");
+    }
+
     switch (query.type) {
       case "CREATE": {
         query = this.fillDefaults(query);

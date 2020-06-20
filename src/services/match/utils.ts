@@ -1,5 +1,5 @@
 import { WeBaseRecord } from "../../types";
-import { getProps } from "../../utils/utils";
+import { getProps, indexedKeyValue } from "../../utils/utils";
 import { relationStoreName } from "./../../utils/utils";
 import { OpenCursor, UpdateAndOrDelete } from "./types";
 
@@ -105,23 +105,6 @@ export async function updateAndOrDelete({
 }
 
 /**
- * Searchs for any key that is indexed in the
- * database, and return the key and value.
- */
-export function indexKeyValue(
-  store: IDBObjectStore,
-  object: WeBaseRecord = {}
-): [string, unknown] {
-  const indexes = store.indexNames;
-
-  for (const k in object) {
-    if (indexes.contains(k)) {
-      return [k, object[k]];
-    }
-  }
-}
-
-/**
  * Creates an index and a key range from a given store to
  * query the database if the passed search object contains an indexed key.
  * Returns the object store if no indexed value is present in
@@ -132,7 +115,7 @@ export function indexStore(
   props?: WeBaseRecord
 ): [IDBIndex | IDBObjectStore, IDBKeyRange] {
   let keyRange: IDBKeyRange;
-  const [key, value] = indexKeyValue(store, props);
+  const [key, value] = indexedKeyValue(store, props);
   let indexStore = store as IDBIndex | IDBObjectStore;
 
   if (key) {
