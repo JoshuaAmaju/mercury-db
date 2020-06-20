@@ -1,7 +1,8 @@
+import { WeBaseRecord } from "./../types";
 import Model from "../model";
-import { toSchemaObj, isFunc } from "./utils";
+import { toSchemaType, isFunc } from "./utils";
 
-export default function getDefaultValuesFor<T extends Record<string, unknown>>(
+export default function getDefaultValuesFor<T extends WeBaseRecord>(
   model: Model,
   props: T
 ): T {
@@ -10,7 +11,7 @@ export default function getDefaultValuesFor<T extends Record<string, unknown>>(
 
   for (const key in schema) {
     const value = props[key];
-    const _schema = toSchemaObj(schema[key]);
+    const _schema = toSchemaType(schema[key]);
 
     const { hidden } = _schema;
     let defaultValue = _schema.default;

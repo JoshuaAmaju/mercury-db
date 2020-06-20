@@ -1,13 +1,13 @@
-import { SchemaObject } from "./types";
-import { toSchemaObj } from "./utils/utils";
+import { SchemaType, StringOrSchemaType } from "./types";
+import { toSchemaType } from "./utils/utils";
 
 export default class Property {
-  constructor(public name: string, private schema: string | SchemaObject) {
-    this.schema = toSchemaObj(schema);
+  constructor(public name: string, private schema: StringOrSchemaType) {
+    this.schema = toSchemaType(schema);
   }
 
-  getSchema(): SchemaObject {
-    return this.schema as SchemaObject;
+  getSchema(): SchemaType {
+    return this.schema as SchemaType;
   }
 
   getType(): string {

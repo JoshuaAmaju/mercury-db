@@ -1,11 +1,13 @@
+import { WeBaseRecord } from "./../types";
 import { ReturnOperator, Properties } from "../services/types";
 import { Action } from "../query/types";
+import { toReturn } from "./utils";
 
 function toParts(string: string) {
   return string.split("AS").map((s) => s.trim());
 }
 
-export default function returnFormatter<T extends Record<string, Properties>>(
+export default function returnFormatter<T extends WeBaseRecord<Properties>>(
   obj: T,
   returner: ReturnOperator["return"]
 ): T {
@@ -19,7 +21,7 @@ export default function returnFormatter<T extends Record<string, Properties>>(
    * {name: ..., u: {...}} etc.
    */
 
-  returner.forEach((key) => {
+  toReturn(returner).forEach((key) => {
     let as: string;
     let variable = key as string | Action;
 

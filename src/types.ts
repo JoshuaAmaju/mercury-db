@@ -1,6 +1,8 @@
-export type MetroObject = Record<string, unknown>;
+export type WeBaseRecord<T = unknown> = Record<string, T>;
 
-export interface SchemaObject {
+export type WeBaseFunction = (...args: unknown[]) => unknown;
+
+export interface SchemaType {
   hidden?: boolean;
   unique?: boolean;
   primary?: boolean;
@@ -10,10 +12,10 @@ export interface SchemaObject {
   default?: unknown | (() => unknown);
 }
 
-export type StringOrSchemaObject = "null" | string | SchemaObject;
+export type StringOrSchemaType = "null" | string | SchemaType;
 
 export interface Schema {
-  [key: string]: StringOrSchemaObject;
+  [key: string]: StringOrSchemaType;
 }
 
 export interface SchemaManager {

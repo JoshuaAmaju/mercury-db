@@ -1,6 +1,6 @@
-import Metro from "../metro";
 import { Query } from "../query/types";
 import { getStores, has } from "../utils/utils";
+import WeBase from "../WeBase";
 import create from "./create";
 import match from "./match/match";
 import { MatchOperators, MergeOperators, Properties } from "./types";
@@ -19,11 +19,11 @@ function get(
 }
 
 export default async function merge(
-  metro: Metro,
+  weBase: WeBase,
   query: Query<string>,
   operators: MergeOperators = {}
 ): Promise<Record<string, unknown> | Record<string, unknown>[]> {
-  const db = metro.db;
+  const db = weBase.db;
   const returner = operators.return;
   const { onMatch, onCreate } = operators;
   const { end, start, relationship } = query;
@@ -46,7 +46,7 @@ export default async function merge(
     [end.as]: endProps,
     [start.as]: startProps,
     [relationship.as]: relationProps,
-  };
+  } as unknown;
 
   if (onCreate) {
     for (const key in onCreate) {

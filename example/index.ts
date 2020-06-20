@@ -114,7 +114,7 @@ async function populateTodos() {
 
   const res = (await db.exec(query, {
     skip: length,
-    return: ["t"],
+    return: "t",
   })) as unknown[];
 
   const fragment = document.createDocumentFragment();

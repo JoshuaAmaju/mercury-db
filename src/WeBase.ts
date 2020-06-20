@@ -6,11 +6,11 @@ import match from "./services/match/match";
 import merge from "./services/merge";
 import relate from "./services/relate";
 import { Properties, QueryOperators } from "./services/types";
-import { SchemaManager, StringOrSchemaObject } from "./types";
+import { SchemaManager, StringOrSchemaType } from "./types";
 import getDefaultValuesFor from "./utils/getDefaultValues";
 import relationSchema from "./utils/relationSchema";
 import { deleteDB, dropSchema, installSchema } from "./utils/schemaManager";
-import { relationStoreName, toArray } from "./utils/utils";
+import { relationStoreName } from "./utils/utils";
 
 type BlockedEvent = {
   event: Event;
@@ -29,7 +29,7 @@ type UpgradeEvent = {
 
 type InitEvents = BlockedEvent | UpgradeEvent | VersionChangeEvent;
 
-export default class Metro {
+export default class WeBase {
   db: IDBDatabase;
   models = new Map<string, Model>();
   private emitter = new Emitter<InitEvents>();
@@ -103,17 +103,14 @@ export default class Metro {
     });
   }
 
-  model<T>(
-    name: string,
-    schema?: Record<keyof T, StringOrSchemaObject>
-  ): Model {
+  model<T>(name: string, schema?: Record<keyof T, StringOrSchemaType>): Model {
     if (schema instanceof Object) {
       const model = new Model(this, name, schema);
       this.models.set(name, model);
     }
 
     if (!this.models.has(name)) {
-      const definedModels = toArray(this.models.keys());
+      const definedModels = [...this.models.keys()];
 
       let message = `Could not find a definition for \`${name}\`.`;
 

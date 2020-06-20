@@ -1,6 +1,7 @@
 import { Todo } from "./types";
 import { v4 as uuid } from "uuid";
-import Metro, { q, assign } from "../src/index";
+import { assign } from "../src/query/actions";
+import Metro, { q } from "../src/index";
 
 const metro = new Metro("example", 1);
 
@@ -11,8 +12,8 @@ metro.model<Todo>("Todo", {
   },
   id: {
     unique: true,
-    type: "strin",
     indexed: true,
+    type: "string",
     default: () => uuid(),
   },
   status: {

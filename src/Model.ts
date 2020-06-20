@@ -1,6 +1,6 @@
 import Property from "./Property";
-import { Schema, StringOrSchemaObject } from "./types";
-import Metro from "./metro";
+import { Schema, StringOrSchemaType } from "./types";
+import WeBase from "./WeBase";
 
 const defaultPrimary = {
   type: "string",
@@ -17,7 +17,7 @@ export default class Model<T = unknown> {
   properties = new Map<string, Property>();
 
   constructor(
-    private metro: Metro,
+    private weBase: WeBase,
     public name: string,
     public schema: Schema
   ) {
@@ -33,7 +33,7 @@ export default class Model<T = unknown> {
     });
   }
 
-  private addProperty(key: string, schema: StringOrSchemaObject) {
+  private addProperty(key: string, schema: StringOrSchemaType) {
     const property = new Property(key, schema);
 
     if (property.isPrimary()) this.primaryKey = key;
@@ -48,7 +48,7 @@ export default class Model<T = unknown> {
   }
 
   get(key: string | number): Promise<T> {
-    const { db } = this.metro;
+    const { db } = this.weBase;
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -59,7 +59,7 @@ export default class Model<T = unknown> {
   }
 
   getAll(): Promise<T[]> {
-    const { db } = this.metro;
+    const { db } = this.weBase;
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -70,7 +70,7 @@ export default class Model<T = unknown> {
   }
 
   count(): Promise<number> {
-    const { db } = this.metro;
+    const { db } = this.weBase;
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -81,7 +81,7 @@ export default class Model<T = unknown> {
   }
 
   clear(): Promise<void> {
-    const { db } = this.metro;
+    const { db } = this.weBase;
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -92,7 +92,7 @@ export default class Model<T = unknown> {
   }
 
   delete(key: string | number): Promise<void> {
-    const { db } = this.metro;
+    const { db } = this.weBase;
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);

@@ -1,46 +1,32 @@
-import { Relationship, WhereHandler } from "../services/types";
-import { SchemaObject } from "../types";
+import { Relationship } from "../services/types";
+import { SchemaType, WeBaseFunction } from "../types";
+import { Returner, ReturnOperator } from "./../services/types";
+import { WeBaseRecord } from "./../types";
 
 export const relationStoreName = "relationships";
 
 export const has = Object.prototype.hasOwnProperty;
 
-type MetroFunction = (...args: unknown[]) => unknown;
-
-export function isFunc(value: unknown): value is MetroFunction {
+export function isFunc(value: unknown): value is WeBaseFunction {
   return typeof value === "function";
 }
 
-export function length(obj: Record<string, unknown>): number {
-  return Object.keys(obj).length;
+export function isEmptyObj(obj: WeBaseRecord): boolean {
+  return Object.keys(obj).length <= 0;
 }
 
-export function isEmptyObj(obj: Record<string, unknown>): boolean {
-  return length(obj) <= 0;
+export function toReturn(returner: ReturnOperator["return"]): Returner[] {
+  const type = returner as Returner;
+  if (typeof returner === "string" || isFunc(returner)) return [type];
+  if (Array.isArray(returner)) return returner;
 }
 
-export function toArray<T>(obj: IterableIterator<T>): T[] {
-  return Array.from(obj);
-}
-
-export function toSchemaObj(schema: string | SchemaObject): SchemaObject {
+export function toSchemaType(schema: string | SchemaType): SchemaType {
   return typeof schema === "string" ? { type: schema } : schema;
 }
 
 export function getStores(...names: string[]): string[] {
   return names.filter((name) => name);
-}
-
-export function toWhere(props: Record<string, unknown>): WhereHandler {
-  return (args) => {
-    const matches = new Set();
-
-    Object.keys(props).forEach((prop) => {
-      matches.add(props[prop] === args[prop]);
-    });
-
-    return !matches.has(false) && matches.size > 0;
-  };
 }
 
 export function getProps(relation: Relationship): Record<string, unknown> {

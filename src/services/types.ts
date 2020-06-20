@@ -1,20 +1,24 @@
-import { MetroObject } from "../types";
+import { WeBaseRecord } from "./../types";
 import { Action } from "../query/types";
 
-export type WhereHandler = (...args: Record<string, unknown>[]) => boolean;
+export type Identity = string | number;
+
+export interface Properties {
+  _id: Identity;
+  [key: string]: unknown;
+}
+
+export type WhereHandler = (...args: Properties[]) => boolean;
 
 export type ReturnType = string | Action;
 
+export type Returner = ReturnType | ReturnType[];
+
 export type ReturnOperator = {
-  return?: (ReturnType | ReturnType[])[];
+  return?: ReturnType | Returner[];
 };
 
 export type CreateOperators = ReturnOperator;
-
-export type MergeOperators = ReturnOperator & {
-  onMatch?: Record<string, Action>;
-  onCreate?: Record<string, Action>;
-};
 
 export type MatchOperators = ReturnOperator & {
   skip?: number;
@@ -22,11 +26,16 @@ export type MatchOperators = ReturnOperator & {
   rawLimit?: number;
   delete?: string[];
   where?: WhereHandler;
-  set?: Record<string, Action<MetroObject, MetroObject>>;
   orderBy?: {
     type?: "ASC" | "DESC";
     key: string | string[];
   };
+  set?: Record<string, Action<WeBaseRecord, WeBaseRecord>>;
+};
+
+export type MergeOperators = ReturnOperator & {
+  onMatch?: Record<string, Action<WeBaseRecord, WeBaseRecord>>;
+  onCreate?: Record<string, Action<WeBaseRecord, WeBaseRecord>>;
 };
 
 export type QueryOperators = CreateOperators & MatchOperators & MergeOperators;
@@ -37,10 +46,5 @@ export interface Relationship {
   type: string;
   end?: unknown;
   start: unknown;
-  [key: string]: unknown;
-}
-
-export interface Properties {
-  _id: string | number;
   [key: string]: unknown;
 }

@@ -1,4 +1,4 @@
-import { MetroObject } from "../types";
+import { WeBaseRecord } from "../types";
 
 export type QueryTypes = "CREATE" | "MATCH" | "MERGE" | "RELATE";
 
@@ -21,7 +21,7 @@ export interface Query<T, P = Record<string, unknown>> {
   relationship?: RelationNode;
 }
 
-export type QueryFunction<T = TemplateStringsArray, K = MetroObject> = (
+export type QueryFunction<T = TemplateStringsArray, K = WeBaseRecord> = (
   a: T,
   b?: K
 ) => (a: T, b?: K) => (a: T, b?: K) => Query<string>;
@@ -42,13 +42,8 @@ export type Action<T = unknown, K = unknown> = {
   exec: ActionExecutor<T, K>;
 };
 
-export type AssignerFunction = (
-  context: Record<string, unknown>
-) => Record<string, unknown>;
+export type AssignerFunction = (context: WeBaseRecord) => WeBaseRecord;
 
-export type PropAssigner = Record<
-  string,
-  unknown | ((context: Record<string, unknown>) => unknown)
->;
+export type PropAssigner = Record<string, unknown | AssignerFunction>;
 
 export type Assigner = AssignerFunction | PropAssigner;

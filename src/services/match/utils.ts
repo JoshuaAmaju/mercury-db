@@ -1,7 +1,7 @@
+import { WeBaseRecord } from "../../types";
+import { getProps } from "../../utils/utils";
 import { relationStoreName } from "./../../utils/utils";
-import { toWhere, getProps } from "../../utils/utils";
-import { UpdateAndOrDelete, OpenCursor } from "./types";
-import { MetroObject } from "../../types";
+import { OpenCursor, UpdateAndOrDelete } from "./types";
 
 // Whether the cursor should continue or stop.
 export function shouldContinue(step: number, limit: number): boolean {
@@ -17,11 +17,18 @@ export function shouldContinue(step: number, limit: number): boolean {
  * present in A object to those in B object, while ignoring keys
  * not present in A but that are present in B.
  */
-export function isEqual(
-  props: Record<string, unknown> | null,
-  target: Record<string, unknown>
+export function hasEqualCorrespondence(
+  props: WeBaseRecord | null,
+  target: WeBaseRecord
 ): boolean {
-  return props ? toWhere(props)(target) : true;
+  if (!props) return true;
+
+  const matches = new Set();
+  Object.keys(props).forEach((prop) => {
+    matches.add(props[prop] === target[prop]);
+  });
+
+  return !matches.has(false) && matches.size > 0;
 }
 
 /**
@@ -46,7 +53,7 @@ export async function updateAndOrDelete({
 
       const props = ref.get(value._id) ?? {};
 
-      if (isEqual(props, value)) {
+      if (hasEqualCorrespondence(props, value)) {
         if (set) {
           const assigner = set[label];
           const val = getProps(value);
@@ -100,7 +107,7 @@ export async function updateAndOrDelete({
  */
 export function indexKeyValue(
   store: IDBObjectStore,
-  object: MetroObject = {}
+  object: WeBaseRecord = {}
 ): [string, unknown] {
   let key: string;
   let value: unknown;
@@ -124,8 +131,8 @@ export function indexKeyValue(
  */
 export function indexStore(
   store: IDBObjectStore,
-  props?: MetroObject
-): { store: IDBIndex | IDBObjectStore; keyRange: IDBKeyRange } {
+  props?: WeBaseRecord
+): [IDBIndex | IDBObjectStore, IDBKeyRange] {
   let keyRange: IDBKeyRange;
   const [key, value] = indexKeyValue(store, props);
   let indexStore = store as IDBIndex | IDBObjectStore;
@@ -135,7 +142,7 @@ export function indexStore(
     keyRange = IDBKeyRange.only(value);
   }
 
-  return { store: indexStore ?? store, keyRange };
+  return [indexStore ?? store, keyRange];
 }
 
 /* Handles anything pertaining

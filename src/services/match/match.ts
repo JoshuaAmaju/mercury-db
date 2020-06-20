@@ -1,10 +1,15 @@
-import { Properties } from "./../types";
 import { Query } from "../../query/types";
 import { sortAscendingBy, sortDescendingBy } from "../../utils/matchSorter";
 import returnFormatter from "../../utils/returnFormatter";
 import { getProps, getStores, has, relationStoreName } from "../../utils/utils";
 import { MatchOperators } from "../types";
-import { indexStore, isEqual, openCursor, updateAndOrDelete } from "./utils";
+import { Properties } from "./../types";
+import {
+  hasEqualCorrespondence,
+  indexStore,
+  openCursor,
+  updateAndOrDelete,
+} from "./utils";
 
 const orderFns = {
   ASC: sortAscendingBy,
@@ -48,13 +53,13 @@ export default async function match(
 
   // Evaluates the where query caluse, if not
   // provided, then all matches are true.
-  const whereEval = (...args: Record<string, unknown>[]) => {
+  const whereEval = (...args: Properties[]) => {
     return where ? where(...args) : true;
   };
 
   let results = [];
   const startStore = tx.objectStore(start.label);
-  const { store, keyRange } = indexStore(startStore, startProps);
+  const [store, keyRange] = indexStore(startStore, startProps);
 
   tx.onerror = () => {
     throw tx.error;
@@ -72,7 +77,7 @@ export default async function match(
     keyRange,
     limit: rawLimit,
     onNext({ value }) {
-      if (isEqual(startProps, value)) {
+      if (hasEqualCorrespondence(startProps, value)) {
         foundStarts.set(value._id, value);
       }
     },
@@ -80,7 +85,7 @@ export default async function match(
 
   if (end.label) {
     const endStore = tx.objectStore(end.label);
-    const { store, keyRange } = indexStore(endStore, endProps);
+    const [store, keyRange] = indexStore(endStore, endProps);
 
     await openCursor({
       skip,
@@ -88,7 +93,7 @@ export default async function match(
       keyRange,
       limit: rawLimit,
       onNext({ value }) {
-        if (isEqual(endProps, value)) {
+        if (hasEqualCorrespondence(endProps, value)) {
           foundEnds.set(value._id, value);
         }
       },
@@ -109,7 +114,7 @@ export default async function match(
         const { _id, type } = value;
         const props = getProps(value) ?? {};
 
-        if (isEqual(relationProps, props)) {
+        if (hasEqualCorrespondence(relationProps, props)) {
           const result = {};
           const startNode = foundStarts.get(value.start);
 
