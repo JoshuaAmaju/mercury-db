@@ -1,9 +1,9 @@
 import { Query } from "../query/types";
-import { getStores, indexedKeyValue } from "../utils/utils";
 import { WeBaseRecord } from "./../types";
 import create from "./create";
 import match from "./match/match";
 import { MatchOperators, MergeOperators, Properties } from "./types";
+import { indexedKeyValue, getStores } from "./utils/utils";
 
 function get(
   tx: IDBTransaction,

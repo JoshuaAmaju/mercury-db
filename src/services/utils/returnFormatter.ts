@@ -1,6 +1,6 @@
-import { WeBaseRecord } from "./../types";
-import { ReturnOperator, Properties } from "../services/types";
-import { Action } from "../query/types";
+import { WeBaseRecord } from "../../types";
+import { ReturnOperator, Properties } from "../types";
+import { Action } from "../../query/types";
 import { toReturn } from "./utils";
 
 function toParts(string: string) {

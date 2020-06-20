@@ -1,25 +1,9 @@
+import { relationStoreName, isEmptyObj } from "./../utils/utils";
 import { Query } from "../query/types";
-import returnFormatter from "../utils/returnFormatter";
-import { getStores, isEmptyObj } from "../utils/utils";
-import relate from "./relate";
-import { CreateOperators, Properties } from "./types";
+import returnFormatter from "./utils/returnFormatter";
 import match from "./match/match";
-
-function relationQuery(q: Query<string>, start: IDBValidKey, end: IDBValidKey) {
-  const query = {
-    start: {
-      ...q.start,
-      props: { _id: start },
-    },
-    end: {
-      ...q.end,
-      props: { _id: end },
-    },
-    relationship: q.relationship,
-  } as Query<string, Properties>;
-
-  return query;
-}
+import { CreateOperators, Properties } from "./types";
+import { getStores, relateHelper } from "./utils/utils";
 
 export default function create(
   db: IDBDatabase,
@@ -29,7 +13,7 @@ export default function create(
   const returner = operators?.return;
   const { end, start, relationship } = query;
 
-  const stores = getStores(start.label, end.label);
+  const stores = getStores(start.label, end.label, relationStoreName);
   const tx = db.transaction(stores, "readwrite");
 
   return new Promise((resolve, reject) => {
@@ -37,57 +21,33 @@ export default function create(
     let startId: IDBValidKey;
     let relation: Properties;
 
-    let txError: Error;
-
     const hasEnd = end && end.props && !isEmptyObj(end.props);
 
     const startReq = tx.objectStore(start.label).put(start.props);
+
     startReq.onerror = () => reject(startReq.error);
-    startReq.onsuccess = () => (startId = startReq.result);
 
-    if (hasEnd) {
-      const endReq = tx.objectStore(end.label).put(end.props);
-      endReq.onerror = () => reject(endReq.error);
-      endReq.onsuccess = () => (endId = endReq.result);
-    }
+    startReq.onsuccess = async () => {
+      startId = startReq.result;
 
-    /**
-     * This is just to provide the user with
-     * a proper error message if any occurs during
-     * the process of creating the relationship.
-     * See below for more explanation.
-     */
-    tx.onerror = () => reject(txError ?? tx.error);
-    tx.onabort = () => reject(txError ?? tx.error);
+      if (hasEnd) {
+        const endReq = tx.objectStore(end.label).put(end.props);
+
+        endReq.onerror = () => reject(endReq.error);
+
+        endReq.onsuccess = async () => {
+          endId = endReq.result;
+          relation = await relateHelper(tx, query, startId, endId);
+        };
+      } else {
+        relation = await relateHelper(tx, query, startId, endId);
+      }
+    };
+
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
 
     tx.oncomplete = async () => {
-      if (relationship.type) {
-        const newQuery = relationQuery(query, startId, endId);
-
-        try {
-          const relationRes = await relate(db, newQuery, {
-            return: [relationship.as],
-          });
-
-          relation = relationRes[relationship.as];
-        } catch (error) {
-          /**
-           * This references the comment above, that
-           * also references this one.
-           *
-           * Abort the transaction that creates the
-           * start and end node if an error occurs while
-           * trying to create the relationship.
-           *
-           * Aborting the operation does not provide the user
-           * with an error, so we have to grab a reference to
-           * the error object, for proper handling.
-           */
-          txError = error;
-          tx.abort();
-        }
-      }
-
       if (!returner) return resolve();
 
       /**

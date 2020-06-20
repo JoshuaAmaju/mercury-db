@@ -1,7 +1,6 @@
 import { Query } from "../../query/types";
-import { sortAscendingBy, sortDescendingBy } from "../../utils/matchSorter";
-import returnFormatter from "../../utils/returnFormatter";
-import { getProps, getStores, has, relationStoreName } from "../../utils/utils";
+import { sortAscendingBy, sortDescendingBy } from "../utils/matchSorter";
+import returnFormatter from "../utils/returnFormatter";
 import { MatchOperators } from "../types";
 import { Properties } from "./../types";
 import {
@@ -10,6 +9,8 @@ import {
   openCursor,
   updateAndOrDelete,
 } from "./utils";
+import { getStores, getProps } from "../utils/utils";
+import { relationStoreName, has } from "../../utils/utils";
 
 const orderFns = {
   ASC: sortAscendingBy,

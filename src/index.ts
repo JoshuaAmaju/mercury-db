@@ -26,10 +26,16 @@ import WeBase from "./WeBase";
   await db.connect();
 
   const name = `John ${Math.random() * 10}`;
-  const createQuery = q`CREATE``(u:User ${{ name }})``[r:HAS]``(b:Book)`;
-  const createRes = await db.exec(createQuery, { return: "u" });
+  const createQuery = q`CREATE``(u:User ${{ name }})``[]``()`;
+  const createQuery2 = q`CREATE``(b:Book ${{ title: name }})``[]``()`;
 
-  console.log(createRes);
+  const createRes = await db.exec(createQuery, { return: ["u"] });
+  const createRes2 = await db.exec(createQuery2, { return: "b" });
+
+  const relateQuery = q`RELATE``(b:User ${createRes["u"]})``[r:HAS]``(b:Book ${createRes2["b"]})`;
+  const relateRes = await db.exec(relateQuery, { return: ["u", "b", "r"] });
+
+  console.log(createRes, createRes2, relateRes);
 })();
 
 function openDB(name: string, version: number): WeBase {
