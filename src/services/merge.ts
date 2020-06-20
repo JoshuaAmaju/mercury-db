@@ -1,6 +1,5 @@
 import { Query } from "../query/types";
 import { getStores, has } from "../utils/utils";
-import WeBase from "../WeBase";
 import create from "./create";
 import match from "./match/match";
 import { MatchOperators, MergeOperators, Properties } from "./types";
@@ -19,11 +18,10 @@ function get(
 }
 
 export default async function merge(
-  weBase: WeBase,
+  db: IDBDatabase,
   query: Query<string>,
   operators: MergeOperators = {}
 ): Promise<Record<string, unknown> | Record<string, unknown>[]> {
-  const db = weBase.db;
   const returner = operators.return;
   const { onMatch, onCreate } = operators;
   const { end, start, relationship } = query;

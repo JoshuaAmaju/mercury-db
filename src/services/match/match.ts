@@ -124,14 +124,14 @@ export default async function match(
             const matches = whereEval(startNode, relation, endNode);
 
             if (matches) {
-              const innerMatch = endProps
+              const relationMatch = endProps
                 ? value.end &&
                   endNode &&
                   value.start === startNode._id &&
                   value.end === (endNode as Properties)._id
                 : true;
 
-              if (innerMatch) {
+              if (relationMatch) {
                 const { as } = relationship;
 
                 if (setOrDelete(relationship.as)) {

@@ -4,9 +4,8 @@ export function installSchema(
   tx: IDBTransaction,
   models: Map<string, Model>
 ): Promise<unknown> {
-  const db = tx.db;
-
   return new Promise((resolve, reject) => {
+    const db = tx.db;
     const modelArray = [...models.entries()];
 
     for (let i = 0; i < modelArray.length; i++) {
@@ -54,16 +53,11 @@ export function installSchema(
 export function dropSchema(
   tx: IDBTransaction,
   models: Map<string, Model>
-): Promise<void> {
-  return new Promise((resolve) => {
-    models.forEach((model) => {
-      const { name } = model;
-      const indexes = model.indexed;
-      const store = tx.objectStore(name);
-      for (const index of indexes) store.deleteIndex(index);
-    });
-
-    resolve();
+): void {
+  models.forEach((model) => {
+    const { name, indexed } = model;
+    const store = tx.objectStore(name);
+    for (const index of indexed) store.deleteIndex(index);
   });
 }
 

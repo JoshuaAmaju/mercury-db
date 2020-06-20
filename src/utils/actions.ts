@@ -1,6 +1,7 @@
+import { WeBaseRecord } from "./../types";
 import { Action, Actions } from "../query/types";
 
-function getValue(arg: Record<string, unknown>, main: string, target: string) {
+function getValue(arg: WeBaseRecord, main: string, target: string) {
   let value: unknown;
 
   const obj = arg[main];
@@ -21,7 +22,7 @@ export function count(label: string, distinct = false): Action {
   const uniqueCounted = new Set();
   const [main, target] = label.split(".");
 
-  const exec = (args: Record<string, unknown>[]) => {
+  const exec = (args: WeBaseRecord[]) => {
     args.forEach((arg) => {
       const value = getValue(arg, main, target);
 
@@ -46,7 +47,7 @@ export function sum(label: string, distinct = false): Action {
   const uniqueSum = new Set();
   const [main, target] = label.split(".");
 
-  const exec = (args: Record<string, unknown>[]) => {
+  const exec = (args: WeBaseRecord[]) => {
     args.forEach((arg) => {
       const value = getValue(arg, main, target);
 
@@ -71,7 +72,7 @@ export function sum(label: string, distinct = false): Action {
 export function last(label?: string): Action {
   const [main, target] = label?.split(".") ?? [];
 
-  const exec = (args: Record<string, unknown>[]) => {
+  const exec = (args: WeBaseRecord[]) => {
     const obj = args[args.length - 1];
     const value = getValue(obj, main, target);
     return value ?? obj;
@@ -87,7 +88,7 @@ export function last(label?: string): Action {
 export function first(label?: string): Action {
   const [main, target] = label?.split(".") ?? [];
 
-  const exec = (args: Record<string, unknown>[]) => {
+  const exec = (args: WeBaseRecord[]) => {
     const obj = args[0];
     const value = getValue(obj, main, target);
     return value ?? obj;

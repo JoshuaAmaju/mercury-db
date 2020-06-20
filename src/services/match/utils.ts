@@ -87,8 +87,11 @@ export async function updateAndOrDelete({
         value: { end, start },
       } = cursor;
 
+      // Get the deleted node
       let id = deletedNodes.get(start);
 
+      // The deleted node is not a start node,
+      // then it must be an end node.
       if (!id) id = deletedNodes.get(end);
 
       /**
@@ -109,18 +112,13 @@ export function indexKeyValue(
   store: IDBObjectStore,
   object: WeBaseRecord = {}
 ): [string, unknown] {
-  let key: string;
-  let value: unknown;
   const indexes = store.indexNames;
 
   for (const k in object) {
     if (indexes.contains(k)) {
-      [key, value] = [k, object[k]];
-      break;
+      return [k, object[k]];
     }
   }
-
-  return [key, value];
 }
 
 /**
@@ -145,14 +143,14 @@ export function indexStore(
   return [indexStore ?? store, keyRange];
 }
 
-/* Handles anything pertaining
- * to traversing each row of a given store. Taking
- advantage of the fact that, although transactions auto
- commit if keep idle, so doing async/await would not work.
- Except if the transaction is active, so we are just passing down
- the same transaction through out the quering process
- to achieve async/await style programming. Basicly keeping
- the transaction active.
+/**
+ * Handles anything pertainingto traversing each row of
+ * a given store. Taking advantage of the fact that,
+ * although transactions auto commit if keep idle, so doing
+ * async/await would not work. Except if the transaction is
+ * active, so we are just passing down the same transaction
+ * through out the quering process to achieve async/await
+ * style programming. Basicly keeping the transaction active.
  */
 export function openCursor({
   skip,

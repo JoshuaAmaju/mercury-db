@@ -19,8 +19,25 @@ export interface Schema {
 }
 
 export interface SchemaManager {
-  drop(): Promise<unknown>;
+  drop(): void;
   install(): Promise<unknown>;
   delete(model: string): void;
   deleteDB(): Promise<unknown>;
 }
+
+export type BlockedEvent = {
+  event: Event;
+  type: "blocked";
+};
+
+export type VersionChangeEvent = {
+  type: "versionchange";
+  event: IDBVersionChangeEvent;
+};
+
+export type UpgradeEvent = {
+  type: "upgrade";
+  schema: SchemaManager;
+};
+
+export type InitEvents = BlockedEvent | UpgradeEvent | VersionChangeEvent;

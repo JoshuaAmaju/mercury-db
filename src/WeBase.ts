@@ -6,28 +6,18 @@ import match from "./services/match/match";
 import merge from "./services/merge";
 import relate from "./services/relate";
 import { Properties, QueryOperators } from "./services/types";
-import { SchemaManager, StringOrSchemaType } from "./types";
+import {
+  Schema,
+  SchemaManager,
+  InitEvents,
+  UpgradeEvent,
+  BlockedEvent,
+  VersionChangeEvent,
+} from "./types";
 import getDefaultValuesFor from "./utils/getDefaultValues";
 import relationSchema from "./utils/relationSchema";
 import { deleteDB, dropSchema, installSchema } from "./utils/schemaManager";
 import { relationStoreName } from "./utils/utils";
-
-type BlockedEvent = {
-  event: Event;
-  type: "blocked";
-};
-
-type VersionChangeEvent = {
-  type: "versionchange";
-  event: IDBVersionChangeEvent;
-};
-
-type UpgradeEvent = {
-  type: "upgrade";
-  schema: SchemaManager;
-};
-
-type InitEvents = BlockedEvent | UpgradeEvent | VersionChangeEvent;
 
 export default class WeBase {
   db: IDBDatabase;
@@ -40,6 +30,14 @@ export default class WeBase {
 
   onClose(fn: VoidFunction): void {
     this.db.addEventListener("close", fn);
+  }
+
+  onAbort(fn: VoidFunction): void {
+    this.db.addEventListener("abort", fn);
+  }
+
+  onError(fn: VoidFunction): void {
+    this.db.addEventListener("error", fn);
   }
 
   onUpgrade(fn: Listener<UpgradeEvent>): void {
@@ -64,14 +62,13 @@ export default class WeBase {
 
       request.onupgradeneeded = () => {
         const tx = request.transaction;
-        const db = tx.db;
 
         const schema: SchemaManager = {
           deleteDB: () => deleteDB(name),
           drop: () => dropSchema(tx, models),
           install: () => installSchema(tx, models),
           delete: (model: string) => {
-            db.deleteObjectStore(model);
+            tx.db.deleteObjectStore(model);
             this.models.delete(model);
           },
         };
@@ -103,9 +100,9 @@ export default class WeBase {
     });
   }
 
-  model<T>(name: string, schema?: Record<keyof T, StringOrSchemaType>): Model {
+  model<T>(name: string, schema?: Schema): Model<T> {
     if (schema instanceof Object) {
-      const model = new Model(this, name, schema);
+      const model = new Model<T>(this, name, schema);
       this.models.set(name, model);
     }
 
@@ -124,35 +121,10 @@ export default class WeBase {
       throw new Error(message);
     }
 
-    return this.models.get(name);
+    return this.models.get(name) as Model<T>;
   }
 
-  exec(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
-    return this.execute(query, operators);
-  }
-
-  execute(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
-    switch (query.type) {
-      case "CREATE": {
-        query = this.fillDefaults(query);
-        return create(this.db, query, operators);
-      }
-
-      case "MATCH": {
-        return match(this.db, query, operators);
-      }
-
-      case "MERGE": {
-        return merge(this, query, operators);
-      }
-
-      case "RELATE": {
-        return relate(this.db, query as Query<string, Properties>, operators);
-      }
-    }
-  }
-
-  fillDefaults<T extends Query<string>>(query: T): T {
+  private fillDefaults<T extends Query<string>>(query: T): T {
     const { end, start } = query;
 
     if (!start.props) {
@@ -170,6 +142,27 @@ export default class WeBase {
     }
 
     return newQuery;
+  }
+
+  exec(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
+    switch (query.type) {
+      case "CREATE": {
+        query = this.fillDefaults(query);
+        return create(this.db, query, operators);
+      }
+
+      case "MATCH": {
+        return match(this.db, query, operators);
+      }
+
+      case "MERGE": {
+        return merge(this.db, query, operators);
+      }
+
+      case "RELATE": {
+        return relate(this.db, query as Query<string, Properties>, operators);
+      }
+    }
   }
 
   batch(
