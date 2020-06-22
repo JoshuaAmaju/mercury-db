@@ -6,8 +6,8 @@ export default function getDefaultValuesFor<T extends WeBaseRecord>(
   model: Model,
   props: T
 ): T {
-  const output = {};
   const schema = model.schema;
+  const output: Record<string, unknown> = {};
 
   for (const key in schema) {
     const value = props[key];

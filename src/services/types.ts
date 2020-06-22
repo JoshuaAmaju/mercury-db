@@ -10,6 +10,8 @@ export interface Properties {
 
 export type WhereHandler = (...args: Properties[]) => boolean;
 
+export type Setter = Record<string, Action<WeBaseRecord, WeBaseRecord>>;
+
 export type ReturnType = string | Action;
 
 export type Returner = ReturnType | ReturnType[];
@@ -21,6 +23,7 @@ export type ReturnOperator = {
 export type CreateOperators = ReturnOperator;
 
 export type MatchOperators = ReturnOperator & {
+  set?: Setter;
   skip?: number;
   limit?: number;
   rawLimit?: number;
@@ -30,12 +33,11 @@ export type MatchOperators = ReturnOperator & {
     type?: "ASC" | "DESC";
     key: string | string[];
   };
-  set?: Record<string, Action<WeBaseRecord, WeBaseRecord>>;
 };
 
 export type MergeOperators = ReturnOperator & {
-  onMatch?: Record<string, Action<WeBaseRecord, WeBaseRecord>>;
-  onCreate?: Record<string, Action<WeBaseRecord, WeBaseRecord>>;
+  onMatch?: Setter;
+  onCreate?: Setter;
 };
 
 export type QueryOperators = CreateOperators & MatchOperators & MergeOperators;

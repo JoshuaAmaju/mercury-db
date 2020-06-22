@@ -1,22 +1,24 @@
-import { WeBaseRecord } from "./../types";
 import { isFunc } from "../utils/utils";
-import { Assigner, Action, Actions } from "./types";
+import { WeBaseRecord } from "./../types";
+import { Action, Actions, Assigner } from "./types";
 
 /**
  * Assigns new values/updates to the object found
  * in the database during a match query.
  */
-export function assign(assigner: Assigner): Action<WeBaseRecord, WeBaseRecord> {
+export function assign<T extends WeBaseRecord>(
+  assigner: Assigner
+): Action<T, T> {
   return {
     type: Actions.ASSIGN,
     exec(obj) {
-      if (isFunc(assigner)) return assigner(obj);
+      if (isFunc<T, T>(assigner)) return assigner(obj);
 
       const output = { ...obj };
 
       for (const key in assigner) {
-        const value = assigner[key];
-        output[key] = isFunc(value) ? value(obj) : value;
+        const value = (assigner as T)[key];
+        (output as WeBaseRecord)[key] = isFunc(value) ? value(obj) : value;
       }
 
       return output;
@@ -24,7 +26,10 @@ export function assign(assigner: Assigner): Action<WeBaseRecord, WeBaseRecord> {
   };
 }
 
-export function count(label: string, distinct = false): Action {
+export function count(
+  label: string,
+  distinct = false
+): Action<WeBaseRecord<WeBaseRecord>, number> {
   const counted = [];
   const countedUnique = new Set();
   const [main, target] = label.split(".");
@@ -55,23 +60,25 @@ export function count(label: string, distinct = false): Action {
   };
 }
 
-export function keys(label: string): Action {
+export function keys(
+  label: string
+): Action<WeBaseRecord<WeBaseRecord>, string[]> {
   const [main, target] = label.split(".");
 
-  const exec = (args: Record<string, unknown>) => {
-    let obj = args[main];
-    if (target) obj = obj[target];
-    return Object.keys(obj);
-  };
-
   return {
-    exec,
     type: Actions.COUNT,
     string: () => `keys(${label})`,
+    exec(args) {
+      let obj = args[main];
+      if (target) obj = obj[target] as WeBaseRecord;
+      return Object.keys(obj);
+    },
   };
 }
 
-export function values(label: string): Action {
+export function values(
+  label: string
+): Action<WeBaseRecord<WeBaseRecord>, unknown[]> {
   const [main, target] = label.split(".");
 
   return {
@@ -79,10 +86,7 @@ export function values(label: string): Action {
     string: () => `values(${label})`,
     exec(args) {
       let obj = args[main];
-      if (target) obj = obj[target];
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      if (target) obj = obj[target] as WeBaseRecord;
       return Object.values(obj);
     },
   };

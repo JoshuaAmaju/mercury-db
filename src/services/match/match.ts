@@ -1,3 +1,4 @@
+import { WeBaseRecord } from "./../../types";
 import { Query } from "../../query/types";
 import { sortAscendingBy, sortDescendingBy } from "../utils/matchSorter";
 import returnFormatter from "../utils/returnFormatter";
@@ -21,7 +22,7 @@ export default async function match(
   db: IDBDatabase,
   query: Query<string>,
   operators: MatchOperators = {}
-): Promise<Record<string, Properties>[]> {
+): Promise<WeBaseRecord<Properties>[] | undefined> {
   const {
     set,
     skip,
@@ -45,11 +46,14 @@ export default async function match(
   const startProps = start.props;
   const relationProps = relationship?.props;
 
-  const stores = getStores(start.label, end.label, relationStoreName);
+  const stores = getStores(start.label, end?.label, relationStoreName);
   const tx = db.transaction(stores, "readwrite");
 
-  const setOrDelete = (label: string) => {
-    return has.call(set ?? {}, label) || deleter?.includes(label);
+  const setOrDelete = (label: string | undefined) => {
+    return (
+      (label && has.call(set ?? {}, label)) ||
+      (label && deleter?.includes(label))
+    );
   };
 
   // Evaluates the where query caluse, if not
@@ -58,7 +62,7 @@ export default async function match(
     return where ? where(...args) : true;
   };
 
-  let results = [];
+  let results: WeBaseRecord<Properties>[] = [];
   const startStore = tx.objectStore(start.label);
   const [store, keyRange] = indexStore(startStore, startProps);
 
@@ -84,7 +88,7 @@ export default async function match(
     },
   });
 
-  if (end.label) {
+  if (end?.label) {
     const endStore = tx.objectStore(end.label);
     const [store, keyRange] = indexStore(endStore, endProps);
 
@@ -101,7 +105,7 @@ export default async function match(
     });
   }
 
-  if (relationship.type) {
+  if (relationship?.type) {
     const keyRange = IDBKeyRange.only(relationship.type);
 
     // Not sure if I should also apply skipping
@@ -116,7 +120,7 @@ export default async function match(
         const props = getProps(value) ?? {};
 
         if (hasEqualCorrespondence(relationProps, props)) {
-          const result = {};
+          const result = {} as WeBaseRecord<Properties>;
           const startNode = foundStarts.get(value.start);
 
           if (startNode) {
@@ -147,9 +151,9 @@ export default async function match(
                   }
                 }
 
-                result[end.as] = endNode;
                 result[start.as] = startNode;
                 result[relationship.as] = relation;
+                if (end?.as) result[end.as] = endNode;
 
                 results.push(result);
               }
@@ -179,8 +183,8 @@ export default async function match(
       });
     }
 
-    if (setOrDelete(end.as)) {
-      if (end.label) {
+    if (setOrDelete(end?.as)) {
+      if (end?.label) {
         const endStore = tx.objectStore(end.label);
         await updateAndOrDelete({
           set,
@@ -211,13 +215,7 @@ export default async function match(
 
   if (!returner) return;
 
-  if (limit) {
-    results = results
-      .map((result, i) => {
-        return i < limit && result;
-      })
-      .filter((res) => res);
-  }
+  if (limit) results.length = limit;
 
   if (orderBy) {
     const { key, type = "ASC" } = orderBy;

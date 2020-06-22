@@ -1,10 +1,10 @@
-import { MatchOperators } from "../types";
+import { Setter } from "../types";
 
 export interface UpdateAndOrDelete {
+  set?: Setter;
   label: string;
-  delete: string[];
+  delete?: string[];
   store: IDBObjectStore;
-  set: Pick<MatchOperators, "set">;
   ref: Map<string, Record<string, unknown>>;
   relationStore?: IDBObjectStore | IDBIndex;
 }

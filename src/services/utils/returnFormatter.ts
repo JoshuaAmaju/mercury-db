@@ -11,7 +11,7 @@ export default function returnFormatter<T extends WeBaseRecord<Properties>>(
   obj: T,
   returner: ReturnOperator["return"]
 ): T {
-  const results = {};
+  const results: Record<string, unknown> = {};
 
   /**
    * Gather the return values by their key or alias. e.g
@@ -22,7 +22,7 @@ export default function returnFormatter<T extends WeBaseRecord<Properties>>(
    */
 
   toReturn(returner).forEach((key) => {
-    let as: string;
+    let as: string | undefined = undefined;
     let variable = key as string | Action;
 
     if (Array.isArray(key)) {
@@ -31,6 +31,7 @@ export default function returnFormatter<T extends WeBaseRecord<Properties>>(
     }
 
     if (typeof variable === "string") {
+      const _variable = variable as string;
       const [value, alias] = toParts(variable);
       const [main, target] = value.split(".");
       if (alias) as = alias;
@@ -39,12 +40,12 @@ export default function returnFormatter<T extends WeBaseRecord<Properties>>(
 
       if (target && Array.isArray(object)) {
         const res = object.map((o) => o[target]);
-        results[as ?? variable] = res;
+        results[as ?? _variable] = res;
       } else {
-        results[as ?? variable] = target ? object[target] : object;
+        results[as ?? _variable] = target ? object[target] : object;
       }
     } else {
-      results[as ?? variable.string()] = variable.exec(obj);
+      results[as ?? (variable as Action).string()] = variable.exec(obj);
     }
   });
 

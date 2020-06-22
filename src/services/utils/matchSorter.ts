@@ -1,3 +1,4 @@
+import { WeBaseRecord } from "./../../types";
 /**
  * Sort array containing match results,
  * e.g [{b: {...}, u: {...}}]
@@ -6,7 +7,10 @@
  * Key param example: u.name, sorts the array by the
  * name key on the u object.
  */
-export function sortAscendingBy<T>(values: T[], key: string): T[] {
+export function sortAscendingBy<T extends WeBaseRecord<WeBaseRecord<never>>>(
+  values: T[],
+  key: string
+): T[] {
   const arr = [...values];
   const [main, target] = key.split(".");
 
@@ -22,7 +26,10 @@ export function sortAscendingBy<T>(values: T[], key: string): T[] {
   return arr;
 }
 
-export function sortDescendingBy<T>(values: T[], key: string): T[] {
+export function sortDescendingBy<T extends WeBaseRecord<WeBaseRecord<never>>>(
+  values: T[],
+  key: string
+): T[] {
   const arr = [...values];
   const [main, target] = key.split(".");
 

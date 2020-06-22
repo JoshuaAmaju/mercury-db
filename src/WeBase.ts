@@ -133,11 +133,11 @@ export default class WeBase {
 
     const newQuery = { ...query };
     const _start = this.model(start.label);
-    const _end = end.label && this.model(end.label);
 
     newQuery.start.props = getDefaultValuesFor(_start, start.props);
 
-    if (end?.props) {
+    if (end?.props && newQuery.end) {
+      const _end = this.model(end.label);
       newQuery.end.props = getDefaultValuesFor(_end, end.props);
     }
 
@@ -145,9 +145,8 @@ export default class WeBase {
   }
 
   exec(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
-    const model = this.models.get(relationStoreName);
-
-    if (this.models.size === 1 && model.name === relationStoreName) {
+    // At this point, the only definded model is the relationship model.
+    if (this.models.size === 1) {
       throw new Error("No models have been defined.");
     }
 
@@ -162,11 +161,15 @@ export default class WeBase {
       }
 
       case "MERGE": {
-        return merge(this.db, query, operators);
+        return merge(this.db, query as Required<typeof query>, operators);
       }
 
       case "RELATE": {
-        return relate(this.db, query as Query<string, Properties>, operators);
+        return relate(
+          this.db,
+          query as Required<Query<string, Properties>>,
+          operators
+        );
       }
     }
   }

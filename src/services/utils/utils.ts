@@ -3,8 +3,8 @@ import { Relationship, ReturnOperator, Returner, Properties } from "../types";
 import { isFunc, relationStoreName } from "../../utils/utils";
 import { Query } from "../../query/types";
 
-export function getStores(...names: string[]): string[] {
-  return names.filter((name) => name);
+export function getStores(...names: (string | undefined)[]): string[] {
+  return names.filter((name) => name) as string[];
 }
 
 export function getProps(relation: Relationship): Record<string, unknown> {
@@ -16,7 +16,7 @@ export function getProps(relation: Relationship): Record<string, unknown> {
 export function toReturn(returner: ReturnOperator["return"]): Returner[] {
   const type = returner as Returner;
   if (typeof returner === "string" || isFunc(returner)) return [type];
-  if (Array.isArray(returner)) return returner;
+  return returner as Returner[];
 }
 
 /**
@@ -26,9 +26,9 @@ export function toReturn(returner: ReturnOperator["return"]): Returner[] {
 export function indexedKeyValue(
   store: IDBObjectStore,
   object: WeBaseRecord = {}
-): [string, unknown] {
-  let key: string;
+): [string | undefined, unknown] {
   let value: unknown;
+  let key: string | undefined;
   const indexes = store.indexNames;
 
   for (const k in object) {
@@ -43,7 +43,7 @@ export function indexedKeyValue(
 
 export function relateHelper(
   tx: IDBTransaction,
-  query: Query<string>,
+  query: Required<Query<string>>,
   startId: unknown,
   endId: unknown
 ): Promise<Properties> {

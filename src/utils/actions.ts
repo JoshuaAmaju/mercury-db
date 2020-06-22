@@ -1,7 +1,11 @@
 import { WeBaseRecord } from "./../types";
 import { Action, Actions } from "../query/types";
 
-function getValue(arg: WeBaseRecord, main: string, target: string) {
+function getValue<T>(
+  arg: WeBaseRecord<WeBaseRecord>,
+  main: string,
+  target: string
+): T {
   let value: unknown;
 
   const obj = arg[main];
@@ -14,89 +18,91 @@ function getValue(arg: WeBaseRecord, main: string, target: string) {
     }
   }
 
-  return value;
+  return value as T;
 }
 
-export function count(label: string, distinct = false): Action {
+export function count(
+  label: string,
+  distinct = false
+): Action<WeBaseRecord<WeBaseRecord>[], number> {
   const counted = [];
   const uniqueCounted = new Set();
   const [main, target] = label.split(".");
 
-  const exec = (args: WeBaseRecord[]) => {
-    args.forEach((arg) => {
-      const value = getValue(arg, main, target);
-
-      if (value) {
-        counted.push(value);
-        uniqueCounted.add(value);
-      }
-    });
-
-    return distinct ? uniqueCounted.size : counted.length;
-  };
-
   return {
-    exec,
     type: Actions.COUNT,
     string: () => `count(${label})`,
+    exec(args) {
+      args.forEach((arg) => {
+        const value = getValue(arg, main, target);
+
+        if (value) {
+          counted.push(value);
+          uniqueCounted.add(value);
+        }
+      });
+
+      return distinct ? uniqueCounted.size : counted.length;
+    },
   };
 }
 
-export function sum(label: string, distinct = false): Action {
-  const sum = [];
-  const uniqueSum = new Set();
+export function sum(
+  label: string,
+  distinct = false
+): Action<WeBaseRecord<WeBaseRecord>[], number> {
+  const sum: number[] = [];
+  const uniqueSum = new Set<number>();
   const [main, target] = label.split(".");
 
-  const exec = (args: WeBaseRecord[]) => {
-    args.forEach((arg) => {
-      const value = getValue(arg, main, target);
-
-      if (value) {
-        sum.push(value);
-        uniqueSum.add(value);
-      }
-    });
-
-    const arr = distinct ? [...uniqueSum.values()] : sum;
-
-    return arr.reduce((prev, curr) => prev + curr);
-  };
-
   return {
-    exec,
     type: Actions.SUM,
     string: () => `sum(${label})`,
+    exec(args) {
+      args.forEach((arg) => {
+        const value = getValue<number>(arg, main, target);
+
+        if (value) {
+          sum.push(value);
+          uniqueSum.add(value);
+        }
+      });
+
+      const arr = distinct ? [...uniqueSum.values()] : sum;
+
+      return arr.reduce((prev, curr) => prev + curr);
+    },
   };
 }
 
-export function last(label?: string): Action {
+export function last<T extends WeBaseRecord<WeBaseRecord>>(
+  label?: string
+): Action<T[], T> {
   const [main, target] = label?.split(".") ?? [];
 
-  const exec = (args: WeBaseRecord[]) => {
-    const obj = args[args.length - 1];
-    const value = getValue(obj, main, target);
-    return value ?? obj;
-  };
-
   return {
-    exec,
     type: Actions.LAST,
     string: () => `last(${label ?? ""})`,
+    exec(args) {
+      const obj = args[args.length - 1];
+      const value = getValue<T>(obj, main, target);
+      return value ?? obj;
+    },
   };
 }
 
-export function first(label?: string): Action {
+export function first<T extends WeBaseRecord<WeBaseRecord>>(
+  label?: string
+): Action<T[], T> {
   const [main, target] = label?.split(".") ?? [];
 
-  const exec = (args: WeBaseRecord[]) => {
-    const obj = args[0];
-    const value = getValue(obj, main, target);
-    return value ?? obj;
-  };
-
   return {
-    exec,
     type: Actions.FIRST,
     string: () => `first(${label ?? ""})`,
+    exec(args) {
+      const obj = args[0];
+      const value = getValue<T>(obj, main, target);
+      return value ?? obj;
+    },
   };
 }

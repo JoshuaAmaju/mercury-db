@@ -1,6 +1,6 @@
 export type WeBaseRecord<T = unknown> = Record<string, T>;
 
-export type WeBaseFunction = (...args: unknown[]) => unknown;
+export type WeBaseFunction<T = unknown, K = unknown> = (...args: T[]) => K;
 
 export interface SchemaType {
   hidden?: boolean;

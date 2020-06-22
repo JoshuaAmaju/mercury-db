@@ -6,15 +6,15 @@ import { getProps, relateHelper } from "./utils/utils";
 
 export default async function relate(
   db: IDBDatabase,
-  query: Query<string, Properties>,
+  query: Required<Query<string, Properties>>,
   operators?: ReturnOperator
-): Promise<Record<string, Properties>> {
+): Promise<Record<string, Properties> | undefined> {
   const returner = operators?.return;
   const { end, start, relationship } = query;
   const { type } = relationship;
 
-  const endPrimaryKey = end.props._id;
-  const startPrimaryKey = start.props._id;
+  const endPrimaryKey = end.props?._id;
+  const startPrimaryKey = start.props?._id;
 
   const tx = db.transaction(relationStoreName, "readwrite");
 

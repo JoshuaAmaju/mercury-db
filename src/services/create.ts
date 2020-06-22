@@ -13,7 +13,7 @@ export default function create(
   const returner = operators?.return;
   const { end, start, relationship } = query;
 
-  const stores = getStores(start.label, end.label, relationStoreName);
+  const stores = getStores(start.label, end?.label, relationStoreName);
   const tx = db.transaction(stores, "readwrite");
 
   return new Promise((resolve, reject) => {
@@ -21,7 +21,9 @@ export default function create(
     let startId: IDBValidKey;
     let relation: Properties;
 
-    const hasEnd = end && end.props && !isEmptyObj(end.props);
+    const relate = () => {
+      return relateHelper(tx, query as Required<typeof query>, start, end);
+    };
 
     const startReq = tx.objectStore(start.label).put(start.props);
 
@@ -30,17 +32,17 @@ export default function create(
     startReq.onsuccess = async () => {
       startId = startReq.result;
 
-      if (hasEnd) {
+      if (end?.props && !isEmptyObj(end.props)) {
         const endReq = tx.objectStore(end.label).put(end.props);
 
         endReq.onerror = () => reject(endReq.error);
 
         endReq.onsuccess = async () => {
           endId = endReq.result;
-          relation = await relateHelper(tx, query, startId, endId);
+          relation = await relate();
         };
       } else {
-        relation = await relateHelper(tx, query, startId, endId);
+        relation = await relate();
       }
     };
 
@@ -59,16 +61,22 @@ export default function create(
           _id: startId,
           ...start.props,
         },
-        [end?.as]: {
+      } as Record<string, Properties>;
+
+      if (end?.as) {
+        returnValues[end.as] = {
           _id: endId,
-          ...end?.props,
-        },
-        [relationship?.as]: {
+          ...end.props,
+        };
+      }
+
+      if (relationship?.as) {
+        returnValues[relationship.as] = {
           _id: relation?._id,
           type: relation?.type,
           ...relationship.props,
-        },
-      } as Record<string, Properties>;
+        };
+      }
 
       const results = returnFormatter(returnValues, returner);
 

@@ -1,10 +1,13 @@
 import { WeBaseRecord } from "../../types";
-import { getProps, indexedKeyValue } from "../../utils/utils";
 import { relationStoreName } from "./../../utils/utils";
 import { OpenCursor, UpdateAndOrDelete } from "./types";
+import { getProps, indexedKeyValue } from "../utils/utils";
 
 // Whether the cursor should continue or stop.
-export function shouldContinue(step: number, limit: number): boolean {
+export function shouldContinue(
+  step: number,
+  limit: number | undefined
+): boolean {
   if (limit) return step < limit ? true : false;
   return true;
 }
@@ -18,7 +21,7 @@ export function shouldContinue(step: number, limit: number): boolean {
  * not present in A but that are present in B.
  */
 export function hasEqualCorrespondence(
-  props: WeBaseRecord | null,
+  props: WeBaseRecord | undefined,
   target: WeBaseRecord
 ): boolean {
   if (!props) return true;

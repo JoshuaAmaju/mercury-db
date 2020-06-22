@@ -5,7 +5,7 @@ export const relationStoreName = "relationships";
 
 export const has = Object.prototype.hasOwnProperty;
 
-export function isFunc(value: unknown): value is WeBaseFunction {
+export function isFunc<T, K>(value: unknown): value is WeBaseFunction<T, K> {
   return typeof value === "function";
 }
 

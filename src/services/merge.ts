@@ -20,9 +20,9 @@ function get(
 
 export default async function merge(
   db: IDBDatabase,
-  query: Query<string>,
+  query: Required<Query<string>>,
   operators: MergeOperators = {}
-): Promise<WeBaseRecord | WeBaseRecord[]> {
+): Promise<WeBaseRecord | WeBaseRecord[] | undefined> {
   const returner = operators.return;
   const { onMatch, onCreate } = operators;
   const { end, start, relationship } = query;
@@ -45,12 +45,12 @@ export default async function merge(
     [end.as]: endProps,
     [start.as]: startProps,
     [relationship.as]: relationProps,
-  } as unknown;
+  } as WeBaseRecord<Properties>;
 
   if (onCreate) {
     for (const key in onCreate) {
       const prop = props[key];
-      props[key] = onCreate[key].exec(prop);
+      props[key] = onCreate[key].exec(prop) as Properties;
     }
   }
 
