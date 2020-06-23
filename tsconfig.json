@@ -1,11 +1,9 @@
 {
     "compilerOptions": {
-        // "noEmit": true,
         "strict": true,
         "outDir": "dist",
-        "lib": ["ESNext"],
-        "target": "ES2015",
-        "module": "ESNext",
+        "target": "es2015",
+        "module": "esnext",
         "declaration": true,
         "noEmitOnError": true,
         "noImplicitAny": true,
@@ -13,6 +11,8 @@
         "noImplicitThis": true,
         "removeComments": true,
         "declarationMap": true,
+        "lib": ["es2017", "DOM"],
+        "moduleResolution": "Node",
         "emitDeclarationOnly": true
     },
     "include": ["src"],

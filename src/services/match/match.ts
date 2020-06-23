@@ -12,6 +12,7 @@ import {
 } from "./utils";
 import { getStores, getProps } from "../utils/utils";
 import { relationStoreName, has } from "../../utils/utils";
+import { MatchResult } from "./types";
 
 const orderFns = {
   ASC: sortAscendingBy,
@@ -62,7 +63,7 @@ export default async function match(
     return where ? where(...args) : true;
   };
 
-  let results: WeBaseRecord<Properties>[] = [];
+  let results: MatchResult[] = [];
   const startStore = tx.objectStore(start.label);
   const [store, keyRange] = indexStore(startStore, startProps);
 
@@ -120,7 +121,7 @@ export default async function match(
         const props = getProps(value) ?? {};
 
         if (hasEqualCorrespondence(relationProps, props)) {
-          const result = {} as WeBaseRecord<Properties>;
+          const result = {} as MatchResult;
           const startNode = foundStarts.get(value.start);
 
           if (startNode) {
@@ -221,7 +222,7 @@ export default async function match(
     const { key, type = "ASC" } = orderBy;
     const orderFn = orderFns[type];
     const keys = Array.isArray(key) ? key : [key];
-    for (const key of keys) results = orderFn(results, key);
+    for (const key of keys) results = orderFn(results as MatchResult<string | number>[], key);
   }
 
   return results.map((result) => {

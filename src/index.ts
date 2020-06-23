@@ -1,6 +1,7 @@
 import q from "./query/query";
 import { count, first, last, sum } from "./utils/actions";
 import WeBase from "./WeBase";
+import { WeBaseRecord } from "./types";
 
 (async () => {
   const db = new WeBase("db", 1);
@@ -29,8 +30,8 @@ import WeBase from "./WeBase";
   const createQuery = q`CREATE``(u:User ${{ name }})``[]``()`;
   const createQuery2 = q`CREATE``(b:Book ${{ title: name }})``[]``()`;
 
-  const createRes = await db.exec(createQuery, { return: ["u"] });
-  const createRes2 = await db.exec(createQuery2, { return: "b" });
+  const createRes = await db.exec(createQuery, { return: ["u"] }) as WeBaseRecord<WeBaseRecord>;
+  const createRes2 = await db.exec(createQuery2, { return: "b" }) as WeBaseRecord<WeBaseRecord>;
 
   const relateQuery = q`RELATE``(b:User ${createRes["u"]})``[r:HAS]``(b:Book ${createRes2["b"]})`;
   const relateRes = await db.exec(relateQuery, { return: ["u", "b", "r"] });

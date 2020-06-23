@@ -1,13 +1,13 @@
-import { WeBaseRecord } from "../../types";
-import { ReturnOperator, Properties } from "../types";
 import { Action } from "../../query/types";
+import { MatchResult } from "../match/types";
+import { ReturnOperator } from "../types";
 import { toReturn } from "./utils";
 
 function toParts(string: string) {
   return string.split("AS").map((s) => s.trim());
 }
 
-export default function returnFormatter<T extends WeBaseRecord<Properties>>(
+export default function returnFormatter<T extends MatchResult>(
   obj: T,
   returner: ReturnOperator["return"]
 ): T {

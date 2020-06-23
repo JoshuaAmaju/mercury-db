@@ -2,7 +2,7 @@ import { relationStoreName, isEmptyObj } from "./../utils/utils";
 import { Query } from "../query/types";
 import returnFormatter from "./utils/returnFormatter";
 import match from "./match/match";
-import { CreateOperators, Properties } from "./types";
+import { CreateOperators, Properties, Identity } from "./types";
 import { getStores, relateHelper } from "./utils/utils";
 
 export default function create(
@@ -58,23 +58,23 @@ export default function create(
        */
       const returnValues = {
         [start.as]: {
-          _id: startId,
           ...start.props,
+          _id: startId,
         },
       } as Record<string, Properties>;
 
       if (end?.as) {
         returnValues[end.as] = {
-          _id: endId,
           ...end.props,
+          _id: endId as Identity,
         };
       }
 
       if (relationship?.as) {
         returnValues[relationship.as] = {
-          _id: relation?._id,
-          type: relation?.type,
           ...relationship.props,
+          type: relation?.type,
+          _id: relation?._id,
         };
       }
 

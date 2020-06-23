@@ -5,11 +5,13 @@
   "main": "src/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "parcel index.html --open --out-dir dev",
+    "clean": "rimraf ./dist",
+    "lint": "eslint --ext ts src",
+    "start": "parcel index.html --open",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
   "license": "ISC",
+  "author": "Joshua Amaju (princejosh0007@gmail.com)",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^3.2.0",
     "@typescript-eslint/parser": "^3.2.0",

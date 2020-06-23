@@ -3,14 +3,11 @@ import { Action } from "../query/types";
 
 export type Identity = string | number;
 
-export interface Properties {
-  _id: Identity;
-  [key: string]: unknown;
-}
+export type Properties<T = unknown> = {_id: Identity} & Record<string, T>
 
 export type WhereHandler = (...args: Properties[]) => boolean;
 
-export type Setter = Record<string, Action<WeBaseRecord, WeBaseRecord>>;
+export type Setter = Record<string, Action<WeBaseRecord, WeBaseRecord<Properties>>>;
 
 export type ReturnType = string | Action;
 

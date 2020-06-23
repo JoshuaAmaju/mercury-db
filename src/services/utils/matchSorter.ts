@@ -1,4 +1,4 @@
-import { WeBaseRecord } from "./../../types";
+import { MatchResult } from "../match/types";
 /**
  * Sort array containing match results,
  * e.g [{b: {...}, u: {...}}]
@@ -7,7 +7,7 @@ import { WeBaseRecord } from "./../../types";
  * Key param example: u.name, sorts the array by the
  * name key on the u object.
  */
-export function sortAscendingBy<T extends WeBaseRecord<WeBaseRecord<never>>>(
+export function sortAscendingBy<T extends MatchResult<string | number>>(
   values: T[],
   key: string
 ): T[] {
@@ -26,7 +26,7 @@ export function sortAscendingBy<T extends WeBaseRecord<WeBaseRecord<never>>>(
   return arr;
 }
 
-export function sortDescendingBy<T extends WeBaseRecord<WeBaseRecord<never>>>(
+export function sortDescendingBy<T extends MatchResult<string | number>>(
   values: T[],
   key: string
 ): T[] {

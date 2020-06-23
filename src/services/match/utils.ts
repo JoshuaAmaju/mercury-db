@@ -83,28 +83,30 @@ export async function updateAndOrDelete({
    * And to also avoid the flooding the database with
    * useless relationships.
    */
-  await openCursor({
-    store: relationStore,
-    onNext(cursor) {
-      const {
-        value: { end, start },
-      } = cursor;
-
-      // Get the deleted node
-      let id = deletedNodes.get(start);
-
-      // The deleted node is not a start node,
-      // then it must be an end node.
-      if (!id) id = deletedNodes.get(end);
-
-      /**
-       * Delete any relationship that has the deleted node
-       * _id as its' start or end reference, and also delete
-       * any relationship that does not have and end node.
-       */
-      if (id === start || id === end) cursor.delete();
-    },
-  });
+  if (relationStore) {
+    await openCursor({
+      store: relationStore,
+      onNext(cursor) {
+        const {
+          value: { end, start },
+        } = cursor;
+  
+        // Get the deleted node
+        let id = deletedNodes.get(start);
+  
+        // The deleted node is not a start node,
+        // then it must be an end node.
+        if (!id) id = deletedNodes.get(end);
+  
+        /**
+         * Delete any relationship that has the deleted node
+         * _id as its' start or end reference, and also delete
+         * any relationship that does not have and end node.
+         */
+        if (id === start || id === end) cursor.delete();
+      },
+    });
+  }
 }
 
 /**
@@ -116,8 +118,8 @@ export async function updateAndOrDelete({
 export function indexStore(
   store: IDBObjectStore,
   props?: WeBaseRecord
-): [IDBIndex | IDBObjectStore, IDBKeyRange] {
-  let keyRange: IDBKeyRange;
+): [IDBIndex | IDBObjectStore, IDBKeyRange | undefined] {
+  let keyRange: IDBKeyRange | undefined;
   const [key, value] = indexedKeyValue(store, props);
   let indexStore = store as IDBIndex | IDBObjectStore;
 
@@ -158,7 +160,7 @@ export function openCursor({
       if (cursor) {
         if (!cursorHasAdvanced) {
           cursorHasAdvanced = true;
-          return cursor.advance(skip);
+          return cursor.advance(skip as number);
         }
 
         count += 1;

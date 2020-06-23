@@ -1,4 +1,4 @@
-import Emitter, { Listener } from "./Emitter";
+import Emitter from "./Emitter";
 import Model from "./model";
 import { Query } from "./query/types";
 import create from "./services/create";
@@ -12,47 +12,49 @@ import {
   InitEvents,
   UpgradeEvent,
   BlockedEvent,
-  VersionChangeEvent,
+  VersionChangeEvent
 } from "./types";
 import getDefaultValuesFor from "./utils/getDefaultValues";
 import relationSchema from "./utils/relationSchema";
 import { deleteDB, dropSchema, installSchema } from "./utils/schemaManager";
 import { relationStoreName } from "./utils/utils";
 
-export default class WeBase {
-  db: IDBDatabase;
-  models = new Map<string, Model>();
-  private emitter = new Emitter<InitEvents>();
+type Listener<T> = (args: T) => void;
 
-  constructor(public name: string, public version: number) {
+export default class WeBase {
+  db?: IDBDatabase
+  models = new Map<string, Model>()
+  private emitter = new Emitter<InitEvents>()
+
+  constructor (public name: string, public version: number) {
     this.model(relationStoreName, relationSchema);
   }
 
-  onClose(fn: VoidFunction): void {
-    this.db.addEventListener("close", fn);
+  onClose (fn: VoidFunction): void {
+    this.db?.addEventListener("close", fn);
   }
 
-  onAbort(fn: VoidFunction): void {
-    this.db.addEventListener("abort", fn);
+  onAbort (fn: VoidFunction): void {
+    this.db?.addEventListener("abort", fn);
   }
 
-  onError(fn: VoidFunction): void {
-    this.db.addEventListener("error", fn);
+  onError (fn: VoidFunction): void {
+    this.db?.addEventListener("error", fn);
   }
 
-  onUpgrade(fn: Listener<UpgradeEvent>): void {
-    this.emitter.on("upgrade", fn);
+  onUpgrade (fn: Listener<UpgradeEvent>): void {
+    this.emitter.on("upgrade", fn as Listener<InitEvents>);
   }
 
-  onBlocked(fn: Listener<BlockedEvent>): void {
-    this.emitter.on("blocked", fn);
+  onBlocked (fn: Listener<BlockedEvent>): void {
+    this.emitter.on("blocked", fn as Listener<InitEvents>);
   }
 
-  onVersionChange(fn: Listener<VersionChangeEvent>): void {
-    this.emitter.on("versionchange", fn);
+  onVersionChange (fn: Listener<VersionChangeEvent>): void {
+    this.emitter.on("versionchange", fn as Listener<InitEvents>);
   }
 
-  connect(): Promise<void> {
+  connect (): Promise<void> {
     const { name, version, models } = this;
 
     return new Promise((resolve, reject) => {
@@ -61,7 +63,7 @@ export default class WeBase {
       request.onerror = () => reject(request.error);
 
       request.onupgradeneeded = () => {
-        const tx = request.transaction;
+        const tx = request.transaction as IDBTransaction;
 
         const schema: SchemaManager = {
           deleteDB: () => deleteDB(name),
@@ -70,20 +72,20 @@ export default class WeBase {
           delete: (model: string) => {
             tx.db.deleteObjectStore(model);
             this.models.delete(model);
-          },
+          }
         };
 
         this.emitter.send({ type: "upgrade", schema });
       };
 
-      request.onblocked = (event) => {
+      request.onblocked = event => {
         this.emitter.send({ type: "blocked", event });
       };
 
       request.onsuccess = () => {
         this.db = request.result;
 
-        this.db.onversionchange = (event) => {
+        this.db.onversionchange = event => {
           this.emitter.send({ type: "versionchange", event });
         };
 
@@ -92,15 +94,16 @@ export default class WeBase {
     });
   }
 
-  disconnect(): Promise<unknown> {
+  disconnect (): Promise<unknown> {
     return new Promise((resolve, reject) => {
+      if (!this.db) return;
       this.db.close();
       this.db.onerror = reject;
       this.db.onclose = resolve;
     });
   }
 
-  model<T>(name: string, schema?: Schema): Model<T> {
+  model<T> (name: string, schema?: Schema): Model<T> {
     if (schema instanceof Object) {
       const model = new Model<T>(this, name, schema);
       this.models.set(name, model);
@@ -114,7 +117,7 @@ export default class WeBase {
       if (definedModels.length === 0) {
         message += "\nNo models have been defined yet.";
       } else {
-        const definitions = definedModels.map((d) => `\t- ${d}`).join("\n");
+        const definitions = definedModels.map(d => `\t- ${d}`).join("\n");
         message += `\nModels currently defined are:\n${definitions}`;
       }
 
@@ -124,7 +127,7 @@ export default class WeBase {
     return this.models.get(name) as Model<T>;
   }
 
-  private fillDefaults<T extends Query<string>>(query: T): T {
+  private fillDefaults<T extends Query<string>> (query: T): T {
     const { end, start } = query;
 
     if (!start.props) {
@@ -144,10 +147,17 @@ export default class WeBase {
     return newQuery;
   }
 
-  exec(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
+  exec (
+    query: Query<string>,
+    operators?: QueryOperators
+  ): Promise<unknown> {
     // At this point, the only definded model is the relationship model.
     if (this.models.size === 1) {
       throw new Error("No models have been defined.");
+    }
+
+    if (!this.db) {
+      throw new Error("Database has not be connected.");
     }
 
     switch (query.type) {
@@ -174,10 +184,15 @@ export default class WeBase {
     }
   }
 
-  batch(
+  batch (
     queries: Query<string>[],
     operators?: QueryOperators
   ): Promise<unknown[]> {
-    return Promise.all(queries.map((query) => this.exec(query, operators)));
+    return Promise.all(queries.map(query => this.exec(query, operators)));
+  }
+
+  getDB(): IDBDatabase {
+    if (!this.db) throw new Error("Database has not be connected.");
+    return this.db;
   }
 }

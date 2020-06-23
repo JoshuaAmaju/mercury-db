@@ -11,6 +11,7 @@ export function assign<T extends WeBaseRecord>(
 ): Action<T, T> {
   return {
     type: Actions.ASSIGN,
+    string: () => "assign()",
     exec(obj) {
       if (isFunc<T, T>(assigner)) return assigner(obj);
 

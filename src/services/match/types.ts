@@ -1,4 +1,5 @@
-import { Setter } from "../types";
+import { Setter, Properties } from "../types";
+import { WeBaseRecord } from "../../types";
 
 export interface UpdateAndOrDelete {
   set?: Setter;
@@ -16,3 +17,5 @@ export interface OpenCursor {
   store: IDBObjectStore | IDBIndex;
   onNext: (cursor: IDBCursorWithValue) => unknown;
 }
+
+export type MatchResult<T = unknown> =  WeBaseRecord<Properties<T>>

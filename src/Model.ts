@@ -48,7 +48,7 @@ export default class Model<T = unknown> {
   }
 
   get(key: string | number): Promise<T> {
-    const { db } = this.weBase;
+    const db = this.weBase.getDB();
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -59,7 +59,7 @@ export default class Model<T = unknown> {
   }
 
   getAll(): Promise<T[]> {
-    const { db } = this.weBase;
+    const db = this.weBase.getDB();
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -70,7 +70,7 @@ export default class Model<T = unknown> {
   }
 
   count(): Promise<number> {
-    const { db } = this.weBase;
+    const db = this.weBase.getDB();
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -81,7 +81,7 @@ export default class Model<T = unknown> {
   }
 
   clear(): Promise<void> {
-    const { db } = this.weBase;
+    const db = this.weBase.getDB();
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -92,7 +92,7 @@ export default class Model<T = unknown> {
   }
 
   delete(key: string | number): Promise<void> {
-    const { db } = this.weBase;
+    const db = this.weBase.getDB();
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
