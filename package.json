@@ -1,14 +1,16 @@
 {
-  "name": "draft-06",
+  "name": "webase",
   "version": "0.0.1",
   "description": "Graph database backed by IndexedDB",
-  "main": "src/index.js",
+  "main": "dist/webase.js",
+  "browser": "dist/webase.umd.ts",
+  "ts:main": "src/index.ts",
+  "typings": "src/index.ts",
   "scripts": {
     "clean": "rimraf ./dist",
     "lint": "eslint --ext ts src",
-    "build": "pnpm run clean & tsc",
-    "start": "parcel index.html --open",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "pnpm run clean & node fuse",
+    "build": "pnpm run lint & pnpm run start"
   },
   "license": "ISC",
   "author": "Joshua Amaju (princejosh0007@gmail.com)",
@@ -16,11 +18,35 @@
     "@typescript-eslint/eslint-plugin": "^3.2.0",
     "@typescript-eslint/parser": "^3.2.0",
     "eslint": "^7.2.0",
-    "eslint-config-standard": "^14.1.1",
     "eslint-plugin-import": "^2.21.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1",
-    "typescript": "^3.8.3"
-  }
+    "fuse-box": "^3.7.1",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.18.1",
+    "terser": "^4.8.0",
+    "tslib": "^2.0.0",
+    "typescript": "^3.9.5",
+    "uglify-js": "^3.10.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://joshuaamaju:christapostolic07@github.com/JoshuaAmaju/WeBase.git"
+  },
+  "keywords": [
+    "indexeddb",
+    "database",
+    "graph",
+    "relationship",
+    "node",
+    "browser",
+    "query"
+  ],
+  "bugs": {
+    "url": "https://github.com/JoshuaAmaju/WeBase/issues"
+  },
+  "homepage": "https://github.com/JoshuaAmaju/WeBase#readme"
 }
