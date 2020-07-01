@@ -1,7 +1,7 @@
 import q from "./query/query";
 import { count, first, last, sum } from "./utils/actions";
 import WeBase from "./WeBase";
-import { WeBaseRecord } from "./types";
+import { Properties } from "./services/types";
 
 function openDB(name: string, version: number): WeBase {
   const db = new WeBase(name, version);
@@ -23,4 +23,5 @@ function openDB(name: string, version: number): WeBase {
 }
 
 export default WeBase;
-export { q, sum, last, first, count, openDB };
+export { q, sum, last, first, count, openDB, Properties };
+

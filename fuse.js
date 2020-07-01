@@ -8,7 +8,12 @@ const fuse = FuseBox.init({
   globals: { default: "*" },
   useTypescriptCompiler: true,
   plugins: [
-    QuantumPlugin({ uglify: true, treeshake: true, bakeApiIntoBundle: true }),
+    QuantumPlugin({
+      uglify: true,
+      treeshake: true,
+      containedAPI: true,
+      bakeApiIntoBundle: true,
+    }),
   ],
 });
 

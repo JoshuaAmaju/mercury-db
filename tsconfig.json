@@ -14,6 +14,6 @@
         "lib": ["es2017", "DOM"],
         "moduleResolution": "Node",
     },
-    "include": ["src/**/*"],
+    "include": ["src"],
     "exclude": ["node_modules"],
 }
