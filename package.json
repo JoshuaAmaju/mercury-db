@@ -10,8 +10,8 @@
     "start": "rollup -c -w",
     "clean": "rimraf ./dist",
     "lint": "eslint --ext ts src",
-    "build": "pnpm run lint & rollup -c",
-    "build:types": "tsc --emitDeclarationOnly --outFile dist/webase.d.ts src/index.ts"
+    "build": "pnpm run clean & pnpm run lint & rollup -c",
+    "postbuild": "tsc --emitDeclarationOnly --outFile dist/webase.d.ts src/index.ts"
   },
   "license": "ISC",
   "author": "Joshua Amaju <princejosh0007@gmail.com>",
