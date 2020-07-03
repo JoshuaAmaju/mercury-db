@@ -1,5 +1,5 @@
 import pkg from "./package.json";
-import terser from "@"
+import terser from "@yuloh/rollup-plugin-terser";
 import typescript from "rollup-plugin-typescript2";
 
 export default {
@@ -15,5 +15,5 @@ export default {
       file: pkg.browser,
     },
   ],
-  plugins: [typescript()]
+  plugins: [typescript(), terser()]
 };
