@@ -12,7 +12,7 @@ import {
   InitEvents,
   UpgradeEvent,
   BlockedEvent,
-  VersionChangeEvent
+  VersionChangeEvent,
 } from "./types";
 import getDefaultValuesFor from "./utils/getDefaultValues";
 import relationSchema from "./utils/relationSchema";
@@ -22,39 +22,39 @@ import { relationStoreName } from "./utils/utils";
 type Listener<T> = (args: T) => void;
 
 export default class WeBase {
-  db?: IDBDatabase
-  models = new Map<string, Model>()
-  private emitter = new Emitter<InitEvents>()
+  db?: IDBDatabase;
+  models = new Map<string, Model>();
+  private emitter = new Emitter<InitEvents>();
 
-  constructor (public name: string, public version: number) {
+  constructor(public name: string, public version: number) {
     this.model(relationStoreName, relationSchema);
   }
 
-  onClose (fn: VoidFunction): void {
+  onClose(fn: VoidFunction): void {
     this.db?.addEventListener("close", fn);
   }
 
-  onAbort (fn: VoidFunction): void {
+  onAbort(fn: VoidFunction): void {
     this.db?.addEventListener("abort", fn);
   }
 
-  onError (fn: VoidFunction): void {
+  onError(fn: VoidFunction): void {
     this.db?.addEventListener("error", fn);
   }
 
-  onUpgrade (fn: Listener<UpgradeEvent>): void {
+  onUpgrade(fn: Listener<UpgradeEvent>): void {
     this.emitter.on("upgrade", fn as Listener<InitEvents>);
   }
 
-  onBlocked (fn: Listener<BlockedEvent>): void {
+  onBlocked(fn: Listener<BlockedEvent>): void {
     this.emitter.on("blocked", fn as Listener<InitEvents>);
   }
 
-  onVersionChange (fn: Listener<VersionChangeEvent>): void {
+  onVersionChange(fn: Listener<VersionChangeEvent>): void {
     this.emitter.on("versionchange", fn as Listener<InitEvents>);
   }
 
-  connect (): Promise<void> {
+  connect(): Promise<void> {
     const { name, version, models } = this;
 
     return new Promise((resolve, reject) => {
@@ -72,20 +72,20 @@ export default class WeBase {
           delete: (model: string) => {
             tx.db.deleteObjectStore(model);
             this.models.delete(model);
-          }
+          },
         };
 
         this.emitter.send({ type: "upgrade", schema });
       };
 
-      request.onblocked = event => {
+      request.onblocked = (event) => {
         this.emitter.send({ type: "blocked", event });
       };
 
       request.onsuccess = () => {
         this.db = request.result;
 
-        this.db.onversionchange = event => {
+        this.db.onversionchange = (event) => {
           this.emitter.send({ type: "versionchange", event });
         };
 
@@ -94,7 +94,7 @@ export default class WeBase {
     });
   }
 
-  disconnect (): Promise<unknown> {
+  disconnect(): Promise<unknown> {
     return new Promise((resolve, reject) => {
       if (!this.db) return;
       this.db.close();
@@ -103,7 +103,7 @@ export default class WeBase {
     });
   }
 
-  model<T> (name: string, schema?: Schema): Model<T> {
+  model<T>(name: string, schema?: Schema): Model<T> {
     if (schema instanceof Object) {
       const model = new Model<T>(this, name, schema);
       this.models.set(name, model);
@@ -117,7 +117,7 @@ export default class WeBase {
       if (definedModels.length === 0) {
         message += "\nNo models have been defined yet.";
       } else {
-        const definitions = definedModels.map(d => `\t- ${d}`).join("\n");
+        const definitions = definedModels.map((d) => `\t- ${d}`).join("\n");
         message += `\nModels currently defined are:\n${definitions}`;
       }
 
@@ -127,7 +127,7 @@ export default class WeBase {
     return this.models.get(name) as Model<T>;
   }
 
-  private fillDefaults<T extends Query<string>> (query: T): T {
+  private fillDefaults<T extends Query<string>>(query: T): T {
     const { end, start } = query;
 
     if (!start.props) {
@@ -147,10 +147,7 @@ export default class WeBase {
     return newQuery;
   }
 
-  exec (
-    query: Query<string>,
-    operators?: QueryOperators
-  ): Promise<unknown> {
+  exec(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
     // At this point, the only definded model is the relationship model.
     if (this.models.size === 1) {
       throw new Error("No models have been defined.");
@@ -184,11 +181,11 @@ export default class WeBase {
     }
   }
 
-  batch (
+  batch(
     queries: Query<string>[],
     operators?: QueryOperators
   ): Promise<unknown[]> {
-    return Promise.all(queries.map(query => this.exec(query, operators)));
+    return Promise.all(queries.map((query) => this.exec(query, operators)));
   }
 
   getDB(): IDBDatabase {

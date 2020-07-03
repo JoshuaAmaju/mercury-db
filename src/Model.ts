@@ -1,6 +1,13 @@
 import Property from "./Property";
-import { Schema, StringOrSchemaType } from "./types";
+import {
+  Schema,
+  StringOrSchemaType,
+  HookEvents,
+  WriteHook,
+  ReadHook,
+} from "./types";
 import WeBase from "./WeBase";
+import Emitter from "./Emitter";
 
 const defaultPrimary = {
   type: "string",
@@ -15,6 +22,7 @@ export default class Model<T = unknown> {
   unique: string[] = [];
   indexed: string[] = [];
   properties = new Map<string, Property>();
+  private emitter = new Emitter<HookEvents>();
 
   constructor(
     private weBase: WeBase,
@@ -45,6 +53,10 @@ export default class Model<T = unknown> {
     this.properties.set(key, property);
 
     return this;
+  }
+
+  subscribe(type: HookEvents["type"], fn: ReadHook | WriteHook): VoidFunction {
+    return this.emitter.on(type, fn);
   }
 
   get(key: string | number): Promise<T> {
