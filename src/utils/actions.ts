@@ -4,7 +4,7 @@ import { WeBaseRecord } from "./../types";
 function getValue<T>(
   arg: WeBaseRecord<WeBaseRecord>,
   main: string,
-  target: string
+  target?: string
 ): T {
   let value: unknown;
 
@@ -21,12 +21,11 @@ function getValue<T>(
   return value as T;
 }
 
-export function get(
-  label: string
-): Action<
-  WeBaseRecord<WeBaseRecord> | WeBaseRecord<WeBaseRecord>[],
-  WeBaseRecord | WeBaseRecord[]
-> {
+export function get<
+  T,
+  P extends WeBaseRecord<WeBaseRecord<T>>,
+  K extends P | P[]
+>(label: string): Action<K, WeBaseRecord<T> | WeBaseRecord<T>[]> {
   return {
     type: Actions.GET,
     string: () => `get(${label})`,
@@ -35,7 +34,7 @@ export function get(
         return args.map((arg) => arg[label]);
       }
 
-      return args[label];
+      return (args as P)[label];
     },
   };
 }
