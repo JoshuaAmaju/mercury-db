@@ -27,11 +27,12 @@ export type QueryFunction<T = TemplateStringsArray, K = WeBaseRecord> = (
 ) => (a: T, b?: K) => (a: T, b?: K) => Query<string>;
 
 export enum Actions {
-  SUM = "metro.sum",
-  LAST = "metro.last",
-  COUNT = "metro.count",
-  FIRST = "metro.first",
-  ASSIGN = "metro.assign",
+  SUM = "webase.sum",
+  GET = "webase.get",
+  LAST = "webase.last",
+  COUNT = "webase.count",
+  FIRST = "webase.first",
+  ASSIGN = "webase.assign",
 }
 
 export type ActionExecutor<T, K> = (context: T) => K;

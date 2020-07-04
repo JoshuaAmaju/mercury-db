@@ -1,5 +1,5 @@
-import { WeBaseRecord } from "./../types";
 import { Action, Actions } from "../query/types";
+import { WeBaseRecord } from "./../types";
 
 function getValue<T>(
   arg: WeBaseRecord<WeBaseRecord>,
@@ -19,6 +19,25 @@ function getValue<T>(
   }
 
   return value as T;
+}
+
+export function get(
+  label: string
+): Action<
+  WeBaseRecord<WeBaseRecord> | WeBaseRecord<WeBaseRecord>[],
+  WeBaseRecord | WeBaseRecord[]
+> {
+  return {
+    type: Actions.GET,
+    string: () => `get(${label})`,
+    exec(args) {
+      if (Array.isArray(args)) {
+        return args.map((arg) => arg[label]);
+      }
+
+      return args[label];
+    },
+  };
 }
 
 export function count(
