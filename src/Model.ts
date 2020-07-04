@@ -59,6 +59,10 @@ export default class Model<T = unknown> {
     return this.emitter.on(type, fn);
   }
 
+  execHooks(type: HookEvents["type"], data?: unknown): void {
+    this.emitter.send({ type, data });
+  }
+
   get(key: string | number): Promise<T> {
     const db = this.weBase.getDB();
 

@@ -13,11 +13,13 @@ import {
   UpgradeEvent,
   BlockedEvent,
   VersionChangeEvent,
+  WeBaseRecord,
 } from "./types";
 import getDefaultValuesFor from "./utils/getDefaultValues";
 import relationSchema from "./utils/relationSchema";
 import { deleteDB, dropSchema, installSchema } from "./utils/schemaManager";
 import { relationStoreName } from "./utils/utils";
+import { get } from "./utils/actions";
 
 type Listener<T> = (args: T) => void;
 
@@ -147,7 +149,35 @@ export default class WeBase {
     return newQuery;
   }
 
-  exec(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
+  async exec(
+    query: Query<string>,
+    operators?: QueryOperators
+  ): Promise<unknown> {
+    const { end, type, start } = query;
+    const startModel = this.model(start.label);
+    const endModel = end?.label && this.model(end.label);
+
+    const res = (await this.execute(query, operators)) as WeBaseRecord<
+      WeBaseRecord
+    >[];
+
+    switch (type) {
+      case "MATCH":
+        startModel.execHooks("READ", get(start.label).exec(res));
+        if (endModel) endModel.execHooks("READ", get(endModel.name).exec(res));
+        break;
+      case "MERGE":
+      case "CREATE":
+      case "RELATE":
+        startModel.execHooks("WRITE");
+        if (endModel) endModel.execHooks("WRITE");
+        break;
+    }
+
+    return res;
+  }
+
+  execute(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
     // At this point, the only definded model is the relationship model.
     if (this.models.size === 1) {
       throw new Error("No models have been defined.");
