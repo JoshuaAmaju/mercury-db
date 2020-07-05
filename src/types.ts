@@ -42,4 +42,7 @@ export type UpgradeEvent = {
 
 export type InitEvents = BlockedEvent | UpgradeEvent | VersionChangeEvent;
 
+export type WriteHook = () => void;
+export type ReadHook = (data: unknown) => void;
+
 export type HookEvents = { type: "READ"; data: unknown } | { type: "WRITE" };

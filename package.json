@@ -2,22 +2,24 @@
   "name": "webase",
   "version": "0.0.1",
   "description": "Graph database backed by IndexedDB",
-  "module": "dist/index.js",
+  "module": "dist/webase.js",
   "main": "dist/webase.js",
   "browser": "dist/webase.umd.js",
-  "typings": "dist/index.d.ts",
+  "typings": "dist/webase.d.ts",
   "scripts": {
     "start": "rollup -c -w",
     "clean": "rimraf ./dist",
+    "prepare": "pnpm run build",
+    "version": "git add -A src",
     "lint": "eslint --ext ts src",
-    "build": "pnpm run clean & pnpm run lint & rollup -c",
-    "postbuild": "tsc --emitDeclarationOnly --outFile dist/webase.d.ts src/index.ts"
+    "preversion": "pnpm run lint",
+    "prepublishOnly": "pnpm run lint",
+    "postversion": "git push & git push --tags",
+    "build": "pnpm run clean & pnpm run lint & rollup -c"
   },
   "license": "ISC",
   "author": "Joshua Amaju <princejosh0007@gmail.com>",
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^8.1.0",
-    "@rollup/plugin-typescript": "^5.0.1",
     "@typescript-eslint/eslint-plugin": "^3.2.0",
     "@typescript-eslint/parser": "^3.2.0",
     "@yuloh/rollup-plugin-terser": "^0.1.1",
@@ -25,10 +27,9 @@
     "eslint-plugin-import": "^2.21.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "fuse-box": "^3.7.1",
     "rimraf": "^3.0.2",
     "rollup": "^2.18.1",
-    "rollup-plugin-typescript2": "^0.27.1",
+    "rollup-plugin-uglify-es": "^0.0.1",
     "terser": "^4.8.0",
     "tslib": "^2.0.0",
     "typescript": "^3.9.5",
@@ -37,9 +38,12 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "registry": "http://localhost:4873"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://joshuaamaju:christapostolic07@github.com/JoshuaAmaju/WeBase.git"
+    "url": "git+https://github.com/JoshuaAmaju/WeBase.git"
   },
   "keywords": [
     "indexeddb",

@@ -1,6 +1,7 @@
 import pkg from "./package.json";
+import uglify from "rollup-plugin-uglify-es";
 import terser from "@yuloh/rollup-plugin-terser";
-import typescript from "rollup-plugin-typescript2";
+import typescript from "@wessberg/rollup-plugin-ts";
 
 export default {
   input: "src/index.ts",
@@ -9,11 +10,11 @@ export default {
       format: "esm",
       file: pkg.main,
     },
-    {
-      format: "umd",
-      name: pkg.name,
-      file: pkg.browser,
-    },
+    // {
+    //   format: "umd",
+    //   name: pkg.name,
+    //   file: pkg.browser,
+    // },
   ],
-  plugins: [typescript(), terser()]
+  plugins: [typescript(), terser(), uglify()],
 };
