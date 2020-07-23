@@ -127,7 +127,14 @@ export default async function match(
           if (startNode) {
             let relation = { _id, type, ...props };
             const endNode = foundEnds.get(value.end);
-            const matches = whereEval(startNode, relation, endNode);
+
+            const args = [
+              start.as && startNode,
+              relationship.as && relation,
+              end?.as && endNode,
+            ].filter((arg) => !!arg);
+
+            const matches = whereEval(...args);
 
             if (matches) {
               const relationMatch = endProps
@@ -180,20 +187,18 @@ export default async function match(
     }
   }
 
-  console.log(foundStarts);
-
   // Perform neccessary property updates or
   // store item deletion.
   if (set || deleter) {
     if (setOrDelete(start.as)) {
-      // await updateAndOrDelete({
-      //   set,
-      //   relationStore,
-      //   label: start.as,
-      //   delete: deleter,
-      //   ref: foundStarts,
-      //   store: startStore,
-      // });
+      await updateAndOrDelete({
+        set,
+        relationStore,
+        label: start.as,
+        delete: deleter,
+        ref: foundStarts,
+        store: startStore,
+      });
     }
 
     if (setOrDelete(end?.as)) {
