@@ -22,7 +22,7 @@ export default function create(
     let relation: Properties;
 
     const relate = () => {
-      return relateHelper(tx, query as Required<typeof query>, start, end);
+      return relateHelper(tx, query as Required<typeof query>, startId, endId);
     };
 
     const startReq = tx.objectStore(start.label).put(start.props);
