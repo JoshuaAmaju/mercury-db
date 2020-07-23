@@ -158,30 +158,42 @@ export default async function match(
 
                 results.push(result);
               }
+            } else {
+              foundEnds.delete(value.end);
+              foundStarts.delete(value.start);
             }
           }
         }
       },
     });
   } else {
-    foundStarts.forEach((node) => {
-      const matches = whereEval(node);
-      if (matches) results.push({ [start.as]: node });
-    });
+    const entries = foundStarts.entries();
+
+    for (const [key, value] of entries) {
+      const matches = whereEval(value);
+
+      if (matches) {
+        results.push({ [start.as]: value });
+      } else {
+        foundStarts.delete(key);
+      }
+    }
   }
+
+  console.log(foundStarts);
 
   // Perform neccessary property updates or
   // store item deletion.
   if (set || deleter) {
     if (setOrDelete(start.as)) {
-      await updateAndOrDelete({
-        set,
-        relationStore,
-        label: start.as,
-        delete: deleter,
-        ref: foundStarts,
-        store: startStore,
-      });
+      // await updateAndOrDelete({
+      //   set,
+      //   relationStore,
+      //   label: start.as,
+      //   delete: deleter,
+      //   ref: foundStarts,
+      //   store: startStore,
+      // });
     }
 
     if (setOrDelete(end?.as)) {
@@ -222,7 +234,8 @@ export default async function match(
     const { key, type = "ASC" } = orderBy;
     const orderFn = orderFns[type];
     const keys = Array.isArray(key) ? key : [key];
-    for (const key of keys) results = orderFn(results as MatchResult<string | number>[], key);
+    for (const key of keys)
+      results = orderFn(results as MatchResult<string | number>[], key);
   }
 
   return results.map((result) => {
