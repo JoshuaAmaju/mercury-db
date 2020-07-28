@@ -149,10 +149,7 @@ export default class WeBase {
     return newQuery;
   }
 
-  async exec(
-    query: Query<string>,
-    operators?: QueryOperators
-  ): Promise<unknown> {
+  async exec<T>(query: Query<string>, operators?: QueryOperators): Promise<T> {
     const { end, type, start } = query;
     const startModel = this.model(start.label);
     const endModel = end?.label && this.model(end.label);
@@ -174,10 +171,13 @@ export default class WeBase {
         break;
     }
 
-    return res;
+    return (res as unknown) as T;
   }
 
-  execute(query: Query<string>, operators?: QueryOperators): Promise<unknown> {
+  private execute(
+    query: Query<string>,
+    operators?: QueryOperators
+  ): Promise<unknown> {
     // At this point, the only definded model is the relationship model.
     if (this.models.size === 1) {
       throw new Error("No models have been defined.");
