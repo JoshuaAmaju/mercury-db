@@ -1,6 +1,6 @@
 {
 	"name": "webase",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Graph database backed by IndexedDB",
 	"module": "dist/webase.js",
 	"main": "dist/webase.js",
