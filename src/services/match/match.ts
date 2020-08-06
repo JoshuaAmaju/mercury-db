@@ -1,18 +1,18 @@
-import { WeBaseRecord } from "./../../types";
 import { Query } from "../../query/types";
+import { relationStoreName } from "../../utils/utils";
+import { MatchOperators } from "../types";
 import { sortAscendingBy, sortDescendingBy } from "../utils/matchSorter";
 import returnFormatter from "../utils/returnFormatter";
-import { MatchOperators } from "../types";
+import { getProps, getStores } from "../utils/utils";
+import { WeBaseRecord } from "./../../types";
 import { Properties } from "./../types";
+import { MatchResult } from "./types";
 import {
   hasEqualCorrespondence,
   indexStore,
   openCursor,
   updateAndOrDelete,
 } from "./utils";
-import { getStores, getProps } from "../utils/utils";
-import { relationStoreName, has } from "../../utils/utils";
-import { MatchResult } from "./types";
 
 const orderFns = {
   ASC: sortAscendingBy,
@@ -52,8 +52,7 @@ export default async function match(
 
   const setOrDelete = (label: string | undefined) => {
     return (
-      (label && has.call(set ?? {}, label)) ||
-      (label && deleter?.includes(label))
+      (label && label in (set ?? {})) || (label && deleter?.includes(label))
     );
   };
 
@@ -141,13 +140,13 @@ export default async function match(
                 ? value.end &&
                   endNode &&
                   value.start === startNode._id &&
-                  value.end === (endNode as Properties)._id
+                  value.end === endNode._id
                 : true;
 
               if (relationMatch) {
                 const { as } = relationship;
 
-                if (setOrDelete(relationship.as)) {
+                if (setOrDelete(as)) {
                   if (set) {
                     const setter = set[as].exec(props);
                     relation = { ...relation, ...setter };
@@ -159,8 +158,8 @@ export default async function match(
                   }
                 }
 
+                result[as] = relation;
                 result[start.as] = startNode;
-                result[relationship.as] = relation;
                 if (end?.as) result[end.as] = endNode;
 
                 results.push(result);

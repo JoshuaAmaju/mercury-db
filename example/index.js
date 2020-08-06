@@ -1,4 +1,5 @@
 import { q, WeBase } from "../dist/webase.js";
+import { assign } from "../dist/actions.js";
 
 (async () => {
   const db = new WeBase("example", 1);
@@ -25,6 +26,7 @@ import { q, WeBase } from "../dist/webase.js";
   };
 
   const book = {
+    user,
     isbn: Math.random() * 1000,
     title: "The personal history of David Copperfield",
   };
@@ -35,13 +37,18 @@ import { q, WeBase } from "../dist/webase.js";
 
   // console.log(createRes);
 
-  // const matchQuery = q`MATCH``(u:User)``[:LIKES]``(b:Book)`;
+  const matchQuery = q`MATCH``(u:User)``[:LIKES]``(b:Book)`;
 
-  // const matchRes = await db.exec(matchQuery, {
-  //   where: (user, book) => {
-  //     return user._id === 2 && book._id === 2;
-  //   },
-  //   delete: ["u"],
-  //   return: ["u", "b"],
-  // });
+  const matchRes = await db.exec(matchQuery, {
+    where: (user, book) => {
+      return book._id === 11;
+    },
+    // delete: ["b"],
+    set: {
+      b: assign({ isbn: 4 }),
+    },
+    return: ["u", "b"],
+  });
+
+  console.log(matchRes);
 })();

@@ -4,11 +4,15 @@ import terser from "@yuloh/rollup-plugin-terser";
 import typescript from "@wessberg/rollup-plugin-ts";
 
 export default {
-  input: "src/index.ts",
+  input: {
+    index: "src/index.ts",
+    actions: "src/query/actions.ts",
+  },
   output: [
     {
       format: "esm",
-      file: pkg.main,
+      // file: pkg.main,
+      dir: "dist",
     },
     // {
     //   format: "umd",
@@ -16,5 +20,5 @@ export default {
     //   file: pkg.browser,
     // },
   ],
-  plugins: [typescript(), terser(), uglify()],
+  plugins: [typescript() /* terser(), uglify() */],
 };

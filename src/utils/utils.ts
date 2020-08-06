@@ -3,8 +3,6 @@ import { WeBaseRecord } from "./../types";
 
 export const relationStoreName = "relationships";
 
-export const has = Object.prototype.hasOwnProperty;
-
 export function isFunc<T, K>(value: unknown): value is WeBaseFunction<T, K> {
   return typeof value === "function";
 }

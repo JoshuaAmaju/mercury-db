@@ -3,6 +3,22 @@ import { relationStoreName } from "./../../utils/utils";
 import { OpenCursor, UpdateAndOrDelete } from "./types";
 import { getProps, indexedKeyValue } from "../utils/utils";
 
+const is = {
+  obj(arg: unknown): arg is Record<string, unknown> {
+    const type = Object.prototype.toString.call(arg);
+    return type === "[object Object]";
+  },
+  array(arg: unknown): arg is Array<unknown> {
+    const type = Object.prototype.toString.call(arg);
+    return (
+      type === "[object Array]" ||
+      type === "[object Uint8Array]" ||
+      type === "[object Uint16Array]" ||
+      type === "[object Uint32Array]"
+    );
+  },
+};
+
 // Whether the cursor should continue or stop.
 export function shouldContinue(
   step: number,
@@ -27,6 +43,7 @@ export function hasEqualCorrespondence(
   if (!props) return true;
 
   const matches = new Set();
+
   Object.keys(props).forEach((prop) => {
     matches.add(props[prop] === target[prop]);
   });
@@ -54,9 +71,9 @@ export async function updateAndOrDelete({
     async onNext(cursor) {
       const { value } = cursor;
 
-      const props = ref.get(value._id) ?? {};
+      const { _id } = ref.get(value._id) ?? {};
 
-      if (hasEqualCorrespondence(props, value)) {
+      if (_id === value._id) {
         if (set) {
           const assigner = set[label];
           const val = getProps(value);
@@ -90,14 +107,14 @@ export async function updateAndOrDelete({
         const {
           value: { end, start },
         } = cursor;
-  
+
         // Get the deleted node
         let id = deletedNodes.get(start);
-  
+
         // The deleted node is not a start node,
         // then it must be an end node.
         if (!id) id = deletedNodes.get(end);
-  
+
         /**
          * Delete any relationship that has the deleted node
          * _id as its' start or end reference, and also delete
