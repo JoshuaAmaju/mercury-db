@@ -1,8 +1,8 @@
 import { relationStoreName, isEmptyObj } from "./../utils/utils";
-import { Query } from "../query/types";
+import type { Query } from "../query/types";
 import returnFormatter from "./utils/returnFormatter";
 import match from "./match/match";
-import { CreateOperators, Properties, Identity } from "./types";
+import type { CreateOperators, Properties, Identity } from "./types";
 import { getStores, relateHelper } from "./utils/utils";
 
 export default function create(

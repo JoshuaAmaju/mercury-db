@@ -1,8 +1,8 @@
-import { Query } from "../query/types";
-import { WeBaseRecord } from "./../types";
+import type { Query } from "../query/types";
+import type { MercuryRecord } from "./../types";
 import create from "./create";
 import match from "./match/match";
-import { MatchOperators, MergeOperators, Properties } from "./types";
+import type { MatchOperators, MergeOperators, Properties } from "./types";
 import { indexedKeyValue, getStores } from "./utils/utils";
 
 function get(
@@ -22,7 +22,7 @@ export default async function merge(
   db: IDBDatabase,
   query: Required<Query<string>>,
   operators: MergeOperators = {}
-): Promise<WeBaseRecord | WeBaseRecord[] | undefined> {
+): Promise<MercuryRecord | MercuryRecord[] | undefined> {
   const returner = operators.return;
   const { onMatch, onCreate } = operators;
   const { end, start, relationship } = query;
@@ -45,7 +45,7 @@ export default async function merge(
     [end.as]: endProps,
     [start.as]: startProps,
     [relationship.as]: relationProps,
-  } as WeBaseRecord<Properties>;
+  } as MercuryRecord<Properties>;
 
   if (onCreate) {
     for (const key in onCreate) {

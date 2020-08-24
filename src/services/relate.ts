@@ -1,6 +1,6 @@
-import { Query } from "../query/types";
+import type { Query } from "../query/types";
 import returnFormatter from "./utils/returnFormatter";
-import { Properties, ReturnOperator } from "./types";
+import type { Properties, ReturnOperator } from "./types";
 import { relationStoreName } from "../utils/utils";
 import { getProps, relateHelper } from "./utils/utils";
 

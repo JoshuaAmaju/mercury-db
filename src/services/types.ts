@@ -1,13 +1,16 @@
-import { WeBaseRecord } from "./../types";
-import { Action } from "../query/types";
+import type { MercuryRecord } from "./../types";
+import type { Action } from "../query/types";
 
 export type Identity = string | number;
 
-export type Properties<T = unknown> = {_id: Identity} & Record<string, T>
+export type Properties<T = unknown> = { _id: Identity } & Record<string, T>;
 
 export type WhereHandler = (...args: Properties[]) => boolean;
 
-export type Setter = Record<string, Action<WeBaseRecord, WeBaseRecord<Properties>>>;
+export type Setter = Record<
+  string,
+  Action<MercuryRecord, MercuryRecord<Properties>>
+>;
 
 export type ReturnType = string | Action;
 

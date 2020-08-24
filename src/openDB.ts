@@ -1,10 +1,10 @@
-import WeBase from "./WeBase";
+import Mercury from "./Mercury";
 
 export default async function openDB(
   name: string,
   version: number
-): Promise<WeBase> {
-  const db = new WeBase(name, version);
+): Promise<Mercury> {
+  const db = new Mercury(name, version);
 
   db.onUpgrade(async ({ schema }) => {
     await schema.install();

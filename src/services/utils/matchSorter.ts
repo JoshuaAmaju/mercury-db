@@ -1,4 +1,5 @@
-import { MatchResult } from "../match/types";
+import type { MatchResult } from "../match/types";
+
 /**
  * Sort array containing match results,
  * e.g [{b: {...}, u: {...}}]

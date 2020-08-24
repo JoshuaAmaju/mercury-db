@@ -1,12 +1,12 @@
 import Property from "./Property";
-import {
+import type {
   Schema,
   StringOrSchemaType,
   HookEvents,
   WriteHook,
   ReadHook,
 } from "./types";
-import WeBase from "./WeBase";
+import Mercury from "./Mercury";
 import Emitter from "./Emitter";
 
 const defaultPrimary = {
@@ -25,7 +25,7 @@ export default class Model<T = unknown> {
   private emitter = new Emitter<HookEvents>();
 
   constructor(
-    private weBase: WeBase,
+    private mercury: Mercury,
     public name: string,
     public schema: Schema
   ) {
@@ -64,7 +64,7 @@ export default class Model<T = unknown> {
   }
 
   get(key: string | number): Promise<T> {
-    const db = this.weBase.getDB();
+    const db = this.mercury.getDB();
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -75,7 +75,7 @@ export default class Model<T = unknown> {
   }
 
   getAll(): Promise<T[]> {
-    const db = this.weBase.getDB();
+    const db = this.mercury.getDB();
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -86,7 +86,7 @@ export default class Model<T = unknown> {
   }
 
   count(): Promise<number> {
-    const db = this.weBase.getDB();
+    const db = this.mercury.getDB();
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -97,7 +97,7 @@ export default class Model<T = unknown> {
   }
 
   clear(): Promise<void> {
-    const db = this.weBase.getDB();
+    const db = this.mercury.getDB();
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);
@@ -108,7 +108,7 @@ export default class Model<T = unknown> {
   }
 
   delete(key: string | number): Promise<void> {
-    const db = this.weBase.getDB();
+    const db = this.mercury.getDB();
 
     return new Promise((resolve, reject) => {
       const tx = db.transaction(this.name);

@@ -1,7 +1,12 @@
-import { WeBaseRecord } from "../../types";
-import { Relationship, ReturnOperator, Returner, Properties } from "../types";
+import type { MercuryRecord } from "../../types";
+import type {
+  Relationship,
+  ReturnOperator,
+  Returner,
+  Properties,
+} from "../types";
 import { isFunc, relationStoreName } from "../../utils/utils";
-import { Query } from "../../query/types";
+import type { Query } from "../../query/types";
 
 export function getStores(...names: (string | undefined)[]): string[] {
   return names.filter((name) => name) as string[];
@@ -25,7 +30,7 @@ export function toReturn(returner: ReturnOperator["return"]): Returner[] {
  */
 export function indexedKeyValue(
   store: IDBObjectStore,
-  object: WeBaseRecord = {}
+  object: MercuryRecord = {}
 ): [string | undefined, unknown] {
   let value: unknown;
   let key: string | undefined;

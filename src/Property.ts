@@ -1,4 +1,4 @@
-import { SchemaType, StringOrSchemaType } from "./types";
+import type { SchemaType, StringOrSchemaType } from "./types";
 import { toSchemaType } from "./utils/utils";
 
 export default class Property {

@@ -1,13 +1,13 @@
-import { SchemaType, WeBaseFunction } from "../types";
-import { WeBaseRecord } from "./../types";
+import type { SchemaType, MercuryFunction } from "../types";
+import type { MercuryRecord } from "./../types";
 
 export const relationStoreName = "relationships";
 
-export function isFunc<T, K>(value: unknown): value is WeBaseFunction<T, K> {
+export function isFunc<T, K>(value: unknown): value is MercuryFunction<T, K> {
   return typeof value === "function";
 }
 
-export function isEmptyObj(obj: WeBaseRecord): boolean {
+export function isEmptyObj(obj: MercuryRecord): boolean {
   return Object.keys(obj).length <= 0;
 }
 

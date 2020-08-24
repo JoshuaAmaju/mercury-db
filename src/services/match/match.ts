@@ -1,12 +1,12 @@
-import { Query } from "../../query/types";
+import type { Query } from "../../query/types";
 import { relationStoreName } from "../../utils/utils";
-import { MatchOperators } from "../types";
+import type { MatchOperators } from "../types";
 import { sortAscendingBy, sortDescendingBy } from "../utils/matchSorter";
 import returnFormatter from "../utils/returnFormatter";
 import { getProps, getStores } from "../utils/utils";
-import { WeBaseRecord } from "./../../types";
-import { Properties } from "./../types";
-import { MatchResult } from "./types";
+import type { MercuryRecord } from "./../../types";
+import type { Properties } from "./../types";
+import type { MatchResult } from "./types";
 import {
   hasEqualCorrespondence,
   indexStore,
@@ -23,7 +23,7 @@ export default async function match(
   db: IDBDatabase,
   query: Query<string>,
   operators: MatchOperators = {}
-): Promise<WeBaseRecord<Properties>[] | undefined> {
+): Promise<MercuryRecord<Properties>[] | undefined> {
   const {
     set,
     skip,

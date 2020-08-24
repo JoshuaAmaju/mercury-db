@@ -1,6 +1,6 @@
-export type WeBaseRecord<T = unknown> = Record<string, T>;
+export type MercuryRecord<T = unknown> = Record<string, T>;
 
-export type WeBaseFunction<T = unknown, K = unknown> = (...args: T[]) => K;
+export type MercuryFunction<T = unknown, K = unknown> = (...args: T[]) => K;
 
 export interface SchemaType {
   hidden?: boolean;

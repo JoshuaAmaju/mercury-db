@@ -1,6 +1,6 @@
-import { WeBaseRecord } from "../../types";
+import type { MercuryRecord } from "../../types";
 import { relationStoreName } from "./../../utils/utils";
-import { OpenCursor, UpdateAndOrDelete } from "./types";
+import type { OpenCursor, UpdateAndOrDelete } from "./types";
 import { getProps, indexedKeyValue } from "../utils/utils";
 
 const is = {
@@ -37,8 +37,8 @@ export function shouldContinue(
  * not present in A but that are present in B.
  */
 export function hasEqualCorrespondence(
-  props: WeBaseRecord | undefined,
-  target: WeBaseRecord
+  props: MercuryRecord | undefined,
+  target: MercuryRecord
 ): boolean {
   if (!props) return true;
 
@@ -134,7 +134,7 @@ export async function updateAndOrDelete({
  */
 export function indexStore(
   store: IDBObjectStore,
-  props?: WeBaseRecord
+  props?: MercuryRecord
 ): [IDBIndex | IDBObjectStore, IDBKeyRange | undefined] {
   let keyRange: IDBKeyRange | undefined;
   const [key, value] = indexedKeyValue(store, props);

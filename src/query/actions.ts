@@ -1,12 +1,13 @@
 import { isFunc } from "../utils/utils";
-import { WeBaseRecord } from "./../types";
-import { Action, Actions, Assigner } from "./types";
+import type { MercuryRecord } from "./../types";
+import { Actions } from "./types";
+import type { Action, Assigner } from "./types";
 
 /**
  * Assigns new values/updates to the object found
  * in the database during a match query.
  */
-export function assign<T extends WeBaseRecord>(
+export function assign<T extends MercuryRecord>(
   assigner: Assigner
 ): Action<T, T> {
   return {
@@ -19,7 +20,7 @@ export function assign<T extends WeBaseRecord>(
 
       for (const key in assigner) {
         const value = (assigner as T)[key];
-        (output as WeBaseRecord)[key] = isFunc(value) ? value(obj) : value;
+        (output as MercuryRecord)[key] = isFunc(value) ? value(obj) : value;
       }
 
       return output;
@@ -30,7 +31,7 @@ export function assign<T extends WeBaseRecord>(
 export function count(
   label: string,
   distinct = false
-): Action<WeBaseRecord<WeBaseRecord>, number> {
+): Action<MercuryRecord<MercuryRecord>, number> {
   const counted = [];
   const countedUnique = new Set();
   const [main, target] = label.split(".");
@@ -63,7 +64,7 @@ export function count(
 
 export function keys(
   label: string
-): Action<WeBaseRecord<WeBaseRecord>, string[]> {
+): Action<MercuryRecord<MercuryRecord>, string[]> {
   const [main, target] = label.split(".");
 
   return {
@@ -71,7 +72,7 @@ export function keys(
     string: () => `keys(${label})`,
     exec(args) {
       let obj = args[main];
-      if (target) obj = obj[target] as WeBaseRecord;
+      if (target) obj = obj[target] as MercuryRecord;
       return Object.keys(obj);
     },
   };
@@ -79,7 +80,7 @@ export function keys(
 
 export function values(
   label: string
-): Action<WeBaseRecord<WeBaseRecord>, unknown[]> {
+): Action<MercuryRecord<MercuryRecord>, unknown[]> {
   const [main, target] = label.split(".");
 
   return {
@@ -87,7 +88,7 @@ export function values(
     string: () => `values(${label})`,
     exec(args) {
       let obj = args[main];
-      if (target) obj = obj[target] as WeBaseRecord;
+      if (target) obj = obj[target] as MercuryRecord;
       return Object.values(obj);
     },
   };

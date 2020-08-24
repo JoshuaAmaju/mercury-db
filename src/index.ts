@@ -1,8 +1,7 @@
 import openDB from "./openDB";
 import q from "./query/query";
-import { Properties } from "./services/types";
+import type { Properties } from "./services/types";
 import { count, first, last, sum } from "./utils/actions";
-import WeBase from "./WeBase";
+import Mercury from "./Mercury";
 
-export { q, sum, last, first, count, WeBase, openDB, Properties };
-
+export { q, sum, last, first, count, Mercury, openDB, Properties };

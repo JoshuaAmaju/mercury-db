@@ -1,20 +1,21 @@
-import { Action, Actions } from "../query/types";
-import { WeBaseRecord } from "./../types";
+import { Actions } from "../query/types";
+import type { Action } from "../query/types";
+import type { MercuryRecord } from "./../types";
 
 function getValue<T>(
-  arg: WeBaseRecord<WeBaseRecord>,
+  arg: MercuryRecord<MercuryRecord>,
   main: string,
   target?: string
 ): T {
   let value: unknown;
 
-  const obj = arg[main];
+  const obj = arg?.[main];
 
   if (obj) {
     if (!target) {
       value = obj;
     } else {
-      value = obj[target];
+      value = obj?.[target];
     }
   }
 
@@ -23,9 +24,9 @@ function getValue<T>(
 
 export function get<
   T,
-  P extends WeBaseRecord<WeBaseRecord<T>>,
+  P extends MercuryRecord<MercuryRecord<T>>,
   K extends P | P[]
->(label: string): Action<K, WeBaseRecord<T> | WeBaseRecord<T>[]> {
+>(label: string): Action<K, MercuryRecord<T> | MercuryRecord<T>[]> {
   return {
     type: Actions.GET,
     string: () => `get(${label})`,
@@ -42,7 +43,7 @@ export function get<
 export function count(
   label: string,
   distinct = false
-): Action<WeBaseRecord<WeBaseRecord>[], number> {
+): Action<MercuryRecord<MercuryRecord>[], number> {
   const counted = [];
   const uniqueCounted = new Set();
   const [main, target] = label.split(".");
@@ -68,7 +69,7 @@ export function count(
 export function sum(
   label: string,
   distinct = false
-): Action<WeBaseRecord<WeBaseRecord>[], number> {
+): Action<MercuryRecord<MercuryRecord>[], number> {
   const sum: number[] = [];
   const uniqueSum = new Set<number>();
   const [main, target] = label.split(".");
@@ -93,7 +94,7 @@ export function sum(
   };
 }
 
-export function last<T extends WeBaseRecord<WeBaseRecord>>(
+export function last<T extends MercuryRecord<MercuryRecord>>(
   label?: string
 ): Action<T[], T> {
   const [main, target] = label?.split(".") ?? [];
@@ -109,7 +110,7 @@ export function last<T extends WeBaseRecord<WeBaseRecord>>(
   };
 }
 
-export function first<T extends WeBaseRecord<WeBaseRecord>>(
+export function first<T extends MercuryRecord<MercuryRecord>>(
   label?: string
 ): Action<T[], T> {
   const [main, target] = label?.split(".") ?? [];

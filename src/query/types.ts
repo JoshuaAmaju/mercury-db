@@ -1,4 +1,4 @@
-import { WeBaseRecord } from "../types";
+import type { MercuryRecord } from "../types";
 
 export type QueryTypes = "CREATE" | "MATCH" | "MERGE" | "RELATE";
 
@@ -21,7 +21,7 @@ export interface Query<T, P = Record<string, unknown>> {
   relationship?: RelationNode;
 }
 
-export type QueryFunction<T = TemplateStringsArray, K = WeBaseRecord> = (
+export type QueryFunction<T = TemplateStringsArray, K = MercuryRecord> = (
   a: T,
   b?: K
 ) => (a: T, b?: K) => (a: T, b?: K) => Query<string>;
@@ -37,11 +37,11 @@ export enum Actions {
 
 export type ActionExecutor<T, K> = (context: T) => K;
 
-export type AssignerFunction<T> = ActionExecutor<WeBaseRecord, T>;
+export type AssignerFunction<T> = ActionExecutor<MercuryRecord, T>;
 
 export type PropAssigner<T = unknown> = Record<string, T | AssignerFunction<T>>;
 
-export type Assigner = AssignerFunction<WeBaseRecord> | PropAssigner;
+export type Assigner = AssignerFunction<MercuryRecord> | PropAssigner;
 
 export type Action<T = unknown, K = unknown> = {
   type: Actions;

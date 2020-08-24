@@ -1,19 +1,19 @@
 import Emitter from "./Emitter";
 import Model from "./model";
-import { Query } from "./query/types";
+import type { Query } from "./query/types";
 import create from "./services/create";
 import match from "./services/match/match";
 import merge from "./services/merge";
 import relate from "./services/relate";
-import { Properties, QueryOperators } from "./services/types";
-import {
+import type { Properties, QueryOperators } from "./services/types";
+import type {
   Schema,
   SchemaManager,
   InitEvents,
   UpgradeEvent,
   BlockedEvent,
   VersionChangeEvent,
-  WeBaseRecord,
+  MercuryRecord,
 } from "./types";
 import getDefaultValuesFor from "./utils/getDefaultValues";
 import relationSchema from "./utils/relationSchema";
@@ -23,7 +23,7 @@ import { get } from "./utils/actions";
 
 type Listener<T> = (args: T) => void;
 
-export default class WeBase {
+export default class Mercury {
   db?: IDBDatabase;
   models = new Map<string, Model>();
   private emitter = new Emitter<InitEvents>();
@@ -154,8 +154,8 @@ export default class WeBase {
     const startModel = this.model(start.label);
     const endModel = end?.label && this.model(end.label);
 
-    const res = (await this.execute(query, operators)) as WeBaseRecord<
-      WeBaseRecord
+    const res = (await this.execute(query, operators)) as MercuryRecord<
+      MercuryRecord
     >[];
 
     switch (type) {

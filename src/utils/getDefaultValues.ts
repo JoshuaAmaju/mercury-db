@@ -1,8 +1,8 @@
-import { WeBaseRecord } from "./../types";
+import type { MercuryRecord } from "./../types";
 import Model from "../model";
 import { toSchemaType, isFunc } from "./utils";
 
-export default function getDefaultValuesFor<T extends WeBaseRecord>(
+export default function getDefaultValuesFor<T extends MercuryRecord>(
   model: Model,
   props: T
 ): T {

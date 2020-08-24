@@ -1,6 +1,6 @@
-import { Action } from "../../query/types";
-import { MatchResult } from "../match/types";
-import { ReturnOperator } from "../types";
+import type { Action } from "../../query/types";
+import type { MatchResult } from "../match/types";
+import type { ReturnOperator } from "../types";
 import { toReturn } from "./utils";
 
 function toParts(string: string) {

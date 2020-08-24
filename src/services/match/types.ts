@@ -1,5 +1,5 @@
-import { Setter, Properties } from "../types";
-import { WeBaseRecord } from "../../types";
+import type { Setter, Properties } from "../types";
+import type { MercuryRecord } from "../../types";
 
 export interface UpdateAndOrDelete {
   set?: Setter;
@@ -18,4 +18,4 @@ export interface OpenCursor {
   onNext: (cursor: IDBCursorWithValue) => unknown;
 }
 
-export type MatchResult<T = unknown> =  WeBaseRecord<Properties<T>>
+export type MatchResult<T = unknown> = MercuryRecord<Properties<T>>;
