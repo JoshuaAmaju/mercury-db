@@ -1,5 +1,5 @@
 {
-	"name": "webase",
+	"name": "mercury",
 	"version": "0.0.5",
 	"description": "Graph database backed by IndexedDB",
 	"module": "dist/webase.js",
