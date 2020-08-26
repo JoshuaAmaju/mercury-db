@@ -7,12 +7,9 @@ export type Properties<T = unknown> = { _id: Identity } & Record<string, T>;
 
 export type WhereHandler = (...args: Properties[]) => boolean;
 
-export type Setter = Record<
-  string,
-  Action<MercuryRecord, MercuryRecord<Properties>>
->;
+export type Setter = Record<string, Action<MercuryRecord, MercuryRecord>>;
 
-export type ReturnType = string | Action;
+export type ReturnType = string | Action<unknown, unknown>;
 
 export type Returner = ReturnType | ReturnType[];
 

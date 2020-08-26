@@ -6,7 +6,7 @@ export interface UpdateAndOrDelete {
   label: string;
   delete?: string[];
   store: IDBObjectStore;
-  ref: Map<string, Record<string, unknown>>;
+  ref: Map<string, MercuryRecord>;
   relationStore?: IDBObjectStore | IDBIndex;
 }
 

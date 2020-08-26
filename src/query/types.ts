@@ -43,7 +43,7 @@ export type PropAssigner<T = unknown> = Record<string, T | AssignerFunction<T>>;
 
 export type Assigner = AssignerFunction<MercuryRecord> | PropAssigner;
 
-export type Action<T = unknown, K = unknown> = {
+export type Action<T, K> = {
   type: Actions;
   string: () => string;
   exec: ActionExecutor<T, K>;

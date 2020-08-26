@@ -23,7 +23,7 @@ export default function returnFormatter<T extends MatchResult>(
 
   toReturn(returner).forEach((key) => {
     let as: string | undefined = undefined;
-    let variable = key as string | Action;
+    let variable = key as string | Action<unknown, unknown>;
 
     if (Array.isArray(key)) {
       variable = key[0] as string;
@@ -45,7 +45,9 @@ export default function returnFormatter<T extends MatchResult>(
         results[as ?? _variable] = target ? object[target] : object;
       }
     } else {
-      results[as ?? (variable as Action).string()] = variable.exec(obj);
+      results[
+        as ?? (variable as Action<unknown, unknown>).string()
+      ] = variable.exec(obj);
     }
   });
 

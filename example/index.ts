@@ -1,8 +1,8 @@
-import { q, WeBase } from "../dist/webase.js";
-import { assign } from "../dist/actions.js";
+import { q, Mercury } from "../dist/index";
+import { assign } from "../dist/actions";
 
 (async () => {
-  const db = new WeBase("example", 1);
+  const db = new Mercury("example", 1);
 
   const Users = db.model("User", {
     age: "number",
