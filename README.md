@@ -88,7 +88,7 @@ await db.connect();
 - The `e` is optional, but is neccessary if you want to do things like RETURN, DELETE, WHERE, SET and ORDERBY.
 - Specify the first/start node (e.g (e:Employee)) is neccessary, while the rest are optional.
 
-> The full pattern shown in `createQuery` must be provided.
+> ### The full pattern shown in `createQuery` must be provided
 
 ```javascript
 // This query matches all `Employee`s.
@@ -237,7 +237,11 @@ Equivalent of an update query
 ```javascript
 const mergeQuery = q`MERGE``(e:Employee ${{ ...e, age: 50 }})``[]``()`;
 
-const mergeRes = await db.exec(mergeQuery);
+const mergeRes = await db.exec(mergeQuery, {
+  onCreate: {
+    e: assign({ age: 70 }),
+  },
+});
 ```
 
 ### Match
