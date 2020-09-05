@@ -12,7 +12,7 @@ While working on a project, I needed a store resources in the browser, the kind 
 
 I was dealing with connected peices of data, it was like squeezing a square peg into a round hole. I soon found myself fighting with the DB and I felt like I was just hacking my way around it.
 
-What other way to handle storing of data that's connected like a graph, other than a [Graph database](). Having worked with [Neo4j](https://neo4j.com/) on the backend, I found it difficult doing things that would be trivial if I were using a graph database. For example, I have a list of users - A, B, C, I want to be able to say:
+What other way to handle storing of data that's connected like a graph, other than a [Graph database](https://en.wikipedia.org/wiki/Graph_database). Having worked with [Neo4j](https://neo4j.com/) on the backend, I found it difficult doing things that would be trivial if I were using a graph database. For example, I have a list of users - A, B, C, I want to be able to say:
 
 - User A is a friend of User B and C.
 - User B is a friend of User A and C.
